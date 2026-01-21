@@ -1,4 +1,6 @@
 const MessagingService = require('../services/MessagingService');
+const BotService = require('../services/BotService');
+const Bot = require('../models/Bot');
 const Group = require('../models/Group');
 
 // Store active users and their socket connections
@@ -38,9 +40,21 @@ function setupSocketHandlers(io) {
 
     // Handle sending message
     socket.on('message:send', async (data) => {
+      console.log('Received message:send event:', data);
+      
       try {
         const { userId, groupId, message, userName } = data;
 
+        if (!userId || !groupId || !message) {
+          console.error('Missing required fields:', { userId, groupId, message });
+          socket.emit('message:error', {
+            message: 'Missing required fields'
+          });
+          return;
+        }
+
+        console.log('Saving message to database...');
+        
         // Save message to database
         const result = await MessagingService.sendMessage({
           group_id: groupId,
@@ -48,18 +62,67 @@ function setupSocketHandlers(io) {
           message_type: 'text'
         }, userId);
 
+        console.log('Save result:', result);
+
         if (result.success) {
+          console.log('Broadcasting message to group:', groupId);
+          
           // Broadcast message to all users in the group
           io.to(`group:${groupId}`).emit('message:new', {
             ...result.data,
             sender_name: userName
           });
+          
+          console.log('Message broadcasted successfully');
         } else {
+          console.error('Failed to save message:', result.message);
           // Send error back to sender
           socket.emit('message:error', {
             message: result.message
           });
         }
+
+        // === Bot mention detection & trigger ===
+        try {
+          const messageText = (result.data && result.data.message_text) || message;
+          const mentionRegex = /@([A-Za-z0-9_]+)/g;
+          const mentions = [];
+          let m;
+          while ((m = mentionRegex.exec(messageText)) !== null) mentions.push(m[1].toLowerCase());
+
+          if (mentions.length > 0) {
+            console.log('Bot mentions detected:', mentions);
+            // Get group to obtain course_id (used by Bot.findByNameInCourse)
+            const group = await Group.findById(groupId);
+            const courseId = group && group.course_id;
+
+            for (const name of mentions) {
+              const bot = courseId ? await Bot.findByNameInCourse(name, courseId) : null;
+              if (!bot) continue;
+
+              const assigned = bot.is_join_bot ? true : await Bot.isAssignedToGroup(bot.id, groupId);
+              if (!assigned) continue;
+
+              console.log('Triggering bot:', bot.bot_name);
+              // If your BotService exposes a handler to process mentions, call it.
+              if (typeof BotService.handleMention === 'function') {
+                // pass bot and the saved message (result.data) to the service
+                BotService.handleMention({
+                  bot,
+                  message: result.data,
+                  groupId,
+                  userId,
+                  userName
+                }).catch(err => console.error('BotService.handleMention error:', err));
+              } else {
+                console.warn('BotService.handleMention not implemented — implement to generate bot responses.');
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error detecting/triggering bot mentions:', err);
+        }
+        // === end bot mention detection ===
       } catch (error) {
         console.error('Socket message send error:', error);
         socket.emit('message:error', {

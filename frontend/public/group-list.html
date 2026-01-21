@@ -115,6 +115,70 @@
         </div>
     </div>
 
+    <!-- Create Bot Modal -->
+    <div class="modal" id="createBotModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create AI Bot</h2>
+                <button class="btn-close" id="closeCreateBotModal">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="createBotForm">
+                    <div class="form-group">
+                        <label for="botName">Bot Name *</label>
+                        <input 
+                            type="text" 
+                            id="botName" 
+                            name="botName"
+                            placeholder="e.g., MathBot"
+                            required
+                        >
+                        <small>Students will mention this bot using @BotName</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="botInstructions">Instructions (Optional)</label>
+                        <textarea 
+                            id="botInstructions" 
+                            name="botInstructions"
+                            rows="3"
+                            placeholder="e.g., You are a math tutor specializing in calculus..."
+                        ></textarea>
+                        <small>Specific guidelines for how the bot should behave</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="botPersonality">Personality (Optional)</label>
+                        <input 
+                            type="text" 
+                            id="botPersonality" 
+                            name="botPersonality"
+                            placeholder="e.g., Friendly, patient, encouraging"
+                        >
+                        <small>Describe the bot's tone and personality</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Assign to Groups (Optional)</label>
+                        <div class="groups-list-bot" id="groupsListBot">
+                            <p>Loading groups...</p>
+                        </div>
+                    </div>
+
+                    <div id="createBotError" class="error-message" style="display: none;"></div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" id="cancelCreateBot">Cancel</button>
+                        <button type="submit" class="btn-primary" id="submitCreateBot">
+                            <span id="createBotBtnText">Create Bot</span>
+                            <span id="createBotBtnLoader" class="loader" style="display: none;"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/groupList.js"></script>
 </body>
 </html>

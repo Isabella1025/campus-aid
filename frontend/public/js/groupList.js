@@ -124,9 +124,7 @@ function setupEventListeners() {
     document.getElementById('createGroupForm').addEventListener('submit', handleCreateGroup);
     
     // Placeholder for other buttons
-    document.getElementById('createBotBtn').addEventListener('click', () => {
-        alert('Bot creation coming in Days 13-14!');
-    });
+    document.getElementById('createBotBtn').addEventListener('click', openCreateBotModal);
     
     document.getElementById('uploadDocBtn').addEventListener('click', () => {
         alert('Document upload coming in Days 11-12!');
@@ -333,4 +331,20 @@ function formatDate(dateString) {
     
     // Show actual date
     return date.toLocaleDateString();
+}
+
+// Bot creation functions
+async function openCreateBotModal() {
+    const modal = document.getElementById('createBotModal');
+    if (modal) {
+        modal.classList.add('active');
+        await loadGroupsForBot();
+    } else {
+        alert('Bot creation modal not yet implemented. Feature coming soon!');
+    }
+}
+
+async function loadGroupsForBot() {
+    // This will be implemented when we add the modal
+    console.log('Load groups for bot assignment');
 }

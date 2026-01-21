@@ -67,6 +67,7 @@ const sessionRouter = require('./routes/session.router');
 const groupRouter = require('./routes/group.router');
 const messageRouter = require('./routes/message.router');
 const fileRouter = require('./routes/file.router');
+const botRouter = require('./routes/bot.router');
 const { attachUserInfo } = require('./middleware/auth.middleware');
 
 // Attach user info to all requests (if authenticated)
@@ -77,6 +78,7 @@ app.use('/api/session', sessionRouter);
 app.use('/api/groups', groupRouter);
 app.use('/api/messages', messageRouter);
 app.use('/api/files', fileRouter);
+app.use('/api/bots', botRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

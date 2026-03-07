@@ -11,14 +11,14 @@ const isAuthenticated = (req, res, next) => {
   });
 };
 
-// Check if user is a lecturer
-const isLecturer = (req, res, next) => {
-  if (req.session && req.session.userRole === 'lecturer') {
+// Check if user is a service_admin
+const isservice_admin = (req, res, next) => {
+  if (req.session && req.session.userRole === 'service_admin') {
     return next();
   }
   return res.status(403).json({
     success: false,
-    message: 'Lecturer access required'
+    message: 'service_admin access required'
   });
 };
 
@@ -78,7 +78,7 @@ const attachUserInfo = (req, res, next) => {
 
 module.exports = {
   isAuthenticated,
-  isLecturer,
+  isservice_admin,
   isStudent,
   hasCourseAccess,
   attachUserInfo

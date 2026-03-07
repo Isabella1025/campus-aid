@@ -5,7 +5,7 @@ class File {
   static async create(fileData) {
     const sql = `
       INSERT INTO files (file_name, original_name, file_path, file_type, file_size, 
-                         uploaded_by, course_id, group_id, message_id)
+                         uploaded_by, service_id, group_id, message_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const result = await query(sql, [
@@ -15,7 +15,7 @@ class File {
       fileData.file_type,
       fileData.file_size,
       fileData.uploaded_by,
-      fileData.course_id || null,
+      fileData.service_id || null,
       fileData.group_id || null,
       fileData.message_id || null
     ]);
@@ -45,7 +45,7 @@ class File {
         u.student_id as uploader_student_id
       FROM files f
       LEFT JOIN users u ON f.uploaded_by = u.id
-      WHERE f.course_id = ?
+      WHERE f.service_id = ?
       ORDER BY f.created_at DESC
     `;
     return await query(sql, [courseId]);
@@ -107,7 +107,7 @@ class File {
         u.full_name as uploader_name
       FROM files f
       LEFT JOIN users u ON f.uploaded_by = u.id
-      WHERE f.course_id = ? AND f.original_name LIKE ?
+      WHERE f.service_id = ? AND f.original_name LIKE ?
       ORDER BY f.created_at DESC
     `;
     return await query(sql, [courseId, `%${searchTerm}%`]);

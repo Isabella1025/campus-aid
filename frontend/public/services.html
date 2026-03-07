@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CampusAid - Services</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+
+        .service-card.career {
+            border-left: 5px solid #3498db;
+        }
+
+        .service-card.advising {
+            border-left: 5px solid #e74c3c;
+        }
+
+        .service-card.odip {
+            border-left: 5px solid #27ae60;
+        }
+
+        .service-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .service-name {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .service-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .channels-list {
+            margin-top: 15px;
+        }
+
+        .channels-title {
+            font-size: 14px;
+            color: #95a5a6;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .channel-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .channel-item:hover {
+            background: #e9ecef;
+        }
+
+        .channel-name {
+            font-weight: 500;
+        }
+
+        .channel-badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .btn-admin {
+            width: 100%;
+            margin-top: 15px;
+            background: #9b59b6;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-admin:hover {
+            background: #8e44ad;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            padding: 50px;
+        }
+
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px 30px;
+            border-radius: 15px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        .empty-state h2 {
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎓 CampusAid - Student Services</h1>
+            <div class="user-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message"></div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            Loading services...
+        </div>
+
+        <!-- Services Grid -->
+        <div id="servicesGrid" class="services-grid" style="display: none;">
+            <!-- Services will be loaded here dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <h2>No Services Available</h2>
+            <p>Please contact your administrator to set up services.</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+
+        // Service icons and colors
+        const serviceConfig = {
+            'CAREER': { icon: '💼', class: 'career', color: '#3498db' },
+            'ADVISING': { icon: '📚', class: 'advising', color: '#e74c3c' },
+            'ODIP': { icon: '🌍', class: 'odip', color: '#27ae60' }
+        };
+
+        // Check authentication
+        function checkAuth() {
+            const user = sessionStorage.getItem('user');
+            if (!user) {
+                window.location.href = '/';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        // Load services and channels
+        async function loadServices() {
+            try {
+                const user = checkAuth();
+                if (!user) return;
+
+                // Display user name
+                document.getElementById('userName').textContent = 
+                    user.full_name || user.email || user.student_id;
+
+                // Fetch services
+                const servicesResponse = await fetch(`${API_BASE}/services`, {
+                    credentials: 'include'
+                });
+
+                if (!servicesResponse.ok) {
+                    throw new Error('Failed to load services');
+                }
+
+                const servicesData = await servicesResponse.json();
+                const services = servicesData.data || [];
+
+                // Fetch channels
+                const channelsResponse = await fetch(`${API_BASE}/channels`, {
+                    credentials: 'include'
+                });
+
+                const channelsData = await channelsResponse.json();
+                const channels = channelsData.data || [];
+
+                // Group channels by service
+                const channelsByService = {};
+                channels.forEach(channel => {
+                    if (!channelsByService[channel.service_id]) {
+                        channelsByService[channel.service_id] = [];
+                    }
+                    channelsByService[channel.service_id].push(channel);
+                });
+
+                // Hide loading
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (services.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    return;
+                }
+
+                // Display services
+                const servicesGrid = document.getElementById('servicesGrid');
+                servicesGrid.style.display = 'grid';
+
+                services.forEach(service => {
+                    const config = serviceConfig[service.service_code] || 
+                                   { icon: '📋', class: 'default', color: '#95a5a6' };
+                    
+                    const serviceChannels = channelsByService[service.id] || [];
+                    
+                    const card = document.createElement('div');
+                    card.className = `service-card ${config.class}`;
+                    
+                    // Don't auto-navigate on card click
+                    card.onclick = null;
+
+                    card.innerHTML = `
+                        <div class="service-icon">${config.icon}</div>
+                        <div class="service-name">${service.service_name}</div>
+                        <div class="service-description">${service.service_description || 'Access support and guidance'}</div>
+                        ${serviceChannels.length > 0 ? `
+                            <div class="channels-list">
+                                <div class="channels-title">Available Channels:</div>
+                                ${serviceChannels.map(channel => `
+                                    <div class="channel-item" onclick="window.location.href='/chat.html?channel=${channel.id}'">
+                                        <span class="channel-name">${channel.channel_name}</span>
+                                        <span class="channel-badge">Chat</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p style="color: #95a5a6; font-size: 13px; margin-top: 10px;">No channels available</p>'}
+                        
+                        ${user.role === 'lecturer' || user.role === 'admin' || user.role === 'service_admin' ? `
+                            <button class="btn-admin" onclick="window.location.href='/admin.html?service=${service.id}'">
+                                ⚙️ Manage Documents & Bots
+                            </button>
+                        ` : ''}
+                    `;
+
+                    servicesGrid.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error loading services:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                const errorMsg = document.getElementById('errorMessage');
+                errorMsg.textContent = 'Failed to load services. Please try refreshing the page.';
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await fetch(`${API_BASE}/session/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            sessionStorage.clear();
+            window.location.href = '/';
+        });
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadServices);
+    </script>
+</body>
+</html>

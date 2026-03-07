@@ -1,6 +1,6 @@
 # Cobot - AI-Powered Academic Collaboration Platform
 
-An intelligent academic collaboration platform that enables lecturers to create course-specific AI bots trained on course materials, facilitating real-time student-bot-lecturer interactions.
+An intelligent academic collaboration platform that enables service_admins to create course-specific AI bots trained on course materials, facilitating real-time student-bot-service_admin interactions.
 
 ## 🎯 Project Overview
 
@@ -8,17 +8,17 @@ An intelligent academic collaboration platform that enables lecturers to create 
 **Supervisor:** Dennis Owusu  
 **Institution:** Ashesi University
 
-Cobot addresses the gap in personalized, course-aware AI support for higher education. Unlike generic AI tools, Cobot allows lecturers to train AI bots specifically on their course content, providing students with accurate, contextual assistance 24/7.
+Cobot addresses the gap in personalized, course-aware AI support for higher education. Unlike generic AI tools, Cobot allows service_admins to train AI bots specifically on their course content, providing students with accurate, contextual assistance 24/7.
 
 ## ✨ Key Features
 
-- **Course-Specific AI Bots**: Lecturers create and train bots on their course materials
+- **Course-Specific AI Bots**: service_admins create and train bots on their course materials
 - **Real-Time Communication**: Instant messaging powered by Socket.IO
 - **Document Upload & Processing**: Support for PDF, DOCX, PPTX, and TXT files
 - **Vector Store Integration**: Semantic search using OpenAI embeddings
 - **Group Chat Management**: Organize discussions by course and topic
 - **Voice Interaction**: Speech-to-text for audio messages (coming soon)
-- **Role-Based Access**: Separate permissions for students and lecturers
+- **Role-Based Access**: Separate permissions for students and service_admins
 
 ## 🛠️ Technology Stack
 
@@ -104,7 +104,7 @@ cobot-project/
 
 ## 🎓 Academic Context
 
-This project is part of a capstone research study investigating how personalized AI bots can improve collaboration between students and lecturers in higher education. The research addresses:
+This project is part of a capstone research study investigating how personalized AI bots can improve collaboration between students and service_admins in higher education. The research addresses:
 
 1. How personalized AI bots enhance academic cooperation
 2. Impact of real-time communication on student engagement

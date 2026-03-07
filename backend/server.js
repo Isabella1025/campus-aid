@@ -3,7 +3,7 @@ const app = require('./app');
 const { Server } = require('socket.io');
 const { testConnection } = require('./config/database');
 const { validateApiKey } = require('./config/openai');
-const { setupSocketHandlers } = require('./sockets/socketHandler');
+const socketHandler = require('./sockets/socketHandler');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
@@ -19,8 +19,8 @@ const io = new Server(server, {
   }
 });
 
-// Setup Socket.IO event handlers
-setupSocketHandlers(io);
+// Initialize Socket.IO handlers
+socketHandler(io);
 
 // Make io accessible to routes
 app.set('io', io);
@@ -28,7 +28,7 @@ app.set('io', io);
 // Startup function
 const startServer = async () => {
   try {
-    console.log('🚀 Starting Cobot Server...');
+    console.log('🚀 Starting CampusAid Server...');
     console.log('Environment:', process.env.NODE_ENV || 'development');
     
     // Test database connection
@@ -48,6 +48,7 @@ const startServer = async () => {
     server.listen(PORT, () => {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`✓ Server running on http://localhost:${PORT}`);
+      console.log(`✓ Socket.IO ready for real-time connections`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('Press CTRL+C to stop');
     });

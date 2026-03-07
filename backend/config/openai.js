@@ -1,5 +1,5 @@
 const OpenAI = require('openai');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -27,14 +27,34 @@ const validateApiKey = async () => {
 // Helper function to create chat completion
 const createChatCompletion = async (messages, options = {}) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: options.model || process.env.OPENAI_MODEL || 'gpt-4',
+    // Determine which parameter to use based on model
+    const model = options.model || process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+    const isGPT5 = model.includes('gpt-5') || model.includes('o1') || model.includes('o4');
+    
+    const params = {
+      model: model,
       messages: messages,
-      max_tokens: options.max_tokens || parseInt(process.env.OPENAI_MAX_TOKENS) || 1000,
-      temperature: options.temperature || 0.7,
       stream: options.stream || false,
       ...options
-    });
+    };
+    
+    // GPT-5 models don't support custom temperature, use default
+    if (!isGPT5) {
+      params.temperature = options.temperature || 0.7;
+    }
+    
+    // Use correct token parameter based on model
+    // GPT-5 and o1/o4 models use max_completion_tokens
+    // GPT-4 and GPT-3.5 use max_tokens
+    if (isGPT5) {
+      params.max_completion_tokens = options.max_tokens || parseInt(process.env.OPENAI_MAX_TOKENS) || 1000;
+      // Remove max_tokens if it was passed in options
+      delete params.max_tokens;
+    } else {
+      params.max_tokens = options.max_tokens || parseInt(process.env.OPENAI_MAX_TOKENS) || 1000;
+    }
+    
+    const response = await openai.chat.completions.create(params);
     
     return response;
   } catch (error) {
@@ -44,7 +64,7 @@ const createChatCompletion = async (messages, options = {}) => {
 };
 
 // Helper function to create embeddings
-const createEmbedding = async (text, model = 'text-embedding-ada-002') => {
+const createEmbedding = async (text, model = 'text-embedding-3-small') => {
   try {
     const response = await openai.embeddings.create({
       model: model,
@@ -59,7 +79,7 @@ const createEmbedding = async (text, model = 'text-embedding-ada-002') => {
 };
 
 // Helper function to create embeddings for multiple texts
-const createEmbeddings = async (texts, model = 'text-embedding-ada-002') => {
+const createEmbeddings = async (texts, model = 'text-embedding-3-small') => {
   try {
     const response = await openai.embeddings.create({
       model: model,
@@ -76,14 +96,26 @@ const createEmbeddings = async (texts, model = 'text-embedding-ada-002') => {
 // Helper function for streaming responses
 const createStreamingCompletion = async (messages, onChunk, options = {}) => {
   try {
-    const stream = await openai.chat.completions.create({
-      model: options.model || process.env.OPENAI_MODEL || 'gpt-4',
+    const model = options.model || process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+    const isGPT5 = model.includes('gpt-5') || model.includes('o1') || model.includes('o4');
+    
+    const params = {
+      model: model,
       messages: messages,
-      max_tokens: options.max_tokens || parseInt(process.env.OPENAI_MAX_TOKENS) || 1000,
       temperature: options.temperature || 0.7,
       stream: true,
       ...options
-    });
+    };
+    
+    // Use correct token parameter
+    if (isGPT5) {
+      params.max_completion_tokens = options.max_tokens || parseInt(process.env.OPENAI_MAX_TOKENS) || 1000;
+      delete params.max_tokens;
+    } else {
+      params.max_tokens = options.max_tokens || parseInt(process.env.OPENAI_MAX_TOKENS) || 1000;
+    }
+
+    const stream = await openai.chat.completions.create(params);
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';

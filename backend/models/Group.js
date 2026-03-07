@@ -15,7 +15,7 @@ class Group {
         (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as member_count
       FROM \`groups\` g
       LEFT JOIN users u ON g.created_by = u.id
-      WHERE g.course_id = ? AND g.is_active = TRUE
+      WHERE g.service_id = ? AND g.is_active = TRUE
       ORDER BY g.created_at DESC
     `;
     return await query(sql, [courseId]);
@@ -32,7 +32,7 @@ class Group {
       FROM \`groups\` g
       INNER JOIN group_members gm ON g.id = gm.group_id
       LEFT JOIN users u ON g.created_by = u.id
-      WHERE gm.user_id = ? AND g.course_id = ? AND g.is_active = TRUE
+      WHERE gm.user_id = ? AND g.service_id = ? AND g.is_active = TRUE
       ORDER BY last_message_time DESC, g.created_at DESC
     `;
     return await query(sql, [userId, courseId]);
@@ -41,12 +41,12 @@ class Group {
   // Create new group
   static async create(groupData) {
     const sql = `
-      INSERT INTO \`groups\` (group_name, course_id, created_by)
+      INSERT INTO \`groups\` (group_name, service_id, created_by)
       VALUES (?, ?, ?)
     `;
     const result = await query(sql, [
       groupData.group_name,
-      groupData.course_id,
+      groupData.service_id,
       groupData.created_by
     ]);
     return result.insertId;

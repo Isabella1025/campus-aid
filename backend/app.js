@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'cobot-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'campusaid-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -34,79 +34,188 @@ app.use(session({
   }
 }));
 
-// Request logging middleware (simple version for now)
+// Serve static files from frontend
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+
+// Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  const timestamp = new Date().toISOString();
+  const user = req.session.user ? `User: ${req.session.user.email}` : 'Unauthenticated';
+  console.log(`[${timestamp}] ${req.method} ${req.path} - ${user}`);
   next();
 });
-
-// Serve static files from frontend BEFORE API routes
-app.use(express.static(path.join(__dirname, '../frontend/public'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    } else if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    } else if (filePath.endsWith('.html')) {
-      res.setHeader('Content-Type', 'text/html');
-    }
-  }
-}));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
+    service: 'CampusAid',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Import routes
+// ============================================
+// API Routes
+// ============================================
+
+// Import routers
 const sessionRouter = require('./routes/session.router');
-const groupRouter = require('./routes/group.router');
-const messageRouter = require('./routes/message.router');
-const fileRouter = require('./routes/file.router');
+const serviceRouter = require('./routes/service.router');
+const channelRouter = require('./routes/channel.router');
 const botRouter = require('./routes/bot.router');
-const { attachUserInfo } = require('./middleware/auth.middleware');
+const fileRouter = require('./routes/file.router');
+// const userRouter = require('./routes/user.router');
+// const vectorStoreRouter = require('./routes/vectorStore.router');
+// const transcriptionRouter = require('./routes/transcription.router');
 
-// Attach user info to all requests (if authenticated)
-app.use(attachUserInfo);
-
-// API routes
+// Register routes
 app.use('/api/session', sessionRouter);
-app.use('/api/groups', groupRouter);
-app.use('/api/messages', messageRouter);
+app.use('/api/services', serviceRouter);
+app.use('/api/channels', channelRouter);
+app.use('/api/bots', botRouter);
 app.use('/api/files', fileRouter);
 app.use('/api/bots', botRouter);
+// app.use('/api/users', userRouter);
+// app.use('/api/files', fileRouter);
+// app.use('/api/vectorstores', vectorStoreRouter);
+// app.use('/api/transcription', transcriptionRouter);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  console.error('Stack:', err.stack);
-  
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal server error',
-      status: err.status || 500,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
-  });
+// ============================================
+// Authentication Middleware (for protected routes)
+// ============================================
+
+const requireAuth = (req, res, next) => {
+  if (!req.session.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
+  }
+  next();
+};
+
+const requireServiceAdmin = (req, res, next) => {
+  if (!req.session.user || req.session.user.role !== 'service_admin') {
+    return res.status(403).json({
+      success: false,
+      error: 'Service administrator access required'
+    });
+  }
+  next();
+};
+
+// Export middleware for use in routes
+app.set('requireAuth', requireAuth);
+app.set('requireServiceAdmin', requireServiceAdmin);
+
+// ============================================
+// Frontend Routes
+// ============================================
+
+// Serve frontend pages
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
 });
 
-// 404 handler - MUST be last
-app.use((req, res) => {
-  // Don't return JSON for HTML requests
-  if (req.accepts('html')) {
-    return res.status(404).send('<h1>404 - Page Not Found</h1><p>Go back to <a href="/">home</a></p>');
-  }
-  
-  res.status(404).json({
-    error: {
-      message: 'Route not found',
-      status: 404,
+app.get('/services', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/services.html'));
+});
+
+app.get('/chat', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/chat.html'));
+});
+
+// ============================================
+// Error Handling
+// ============================================
+
+// 404 handler - must come before error handler
+app.use((req, res, next) => {
+  // Check if it's an API request
+  if (req.path.startsWith('/api/')) {
+    res.status(404).json({
+      success: false,
+      error: 'API endpoint not found',
       path: req.path
-    }
+    });
+  } else {
+    // For non-API requests, send 404 page or redirect to home
+    res.status(404).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - Page Not Found</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+          }
+          .error-container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
+          h1 {
+            color: #e74c3c;
+            font-size: 4rem;
+            margin: 0;
+          }
+          p {
+            color: #666;
+            font-size: 1.2rem;
+          }
+          a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="error-container">
+          <h1>404</h1>
+          <p>Page not found</p>
+          <p><a href="/">Return to CampusAid Home</a></p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+});
+
+// Global error handler - must be last
+app.use((err, req, res, next) => {
+  console.error('Error occurred:');
+  console.error('Message:', err.message);
+  console.error('Stack:', err.stack);
+  
+  // Don't leak error details in production
+  const errorMessage = process.env.NODE_ENV === 'production' 
+    ? 'An error occurred processing your request'
+    : err.message;
+  
+  const statusCode = err.status || err.statusCode || 500;
+  
+  res.status(statusCode).json({
+    success: false,
+    error: errorMessage,
+    ...(process.env.NODE_ENV === 'development' && { 
+      stack: err.stack,
+      details: err
+    })
   });
 });
 

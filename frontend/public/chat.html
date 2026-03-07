@@ -2,87 +2,982 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>CampusAid - Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobot - Chat</title>
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/chat.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #f5f7fb;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #1a252f;
+            border-bottom: 1px solid #34495e;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-info {
+            font-size: 12px;
+            color: #95a5a6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #2980b9;
+        }
+
+        .channels-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .channel-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .channel-item:hover {
+            background: #34495e;
+        }
+
+        .channel-item.active {
+            background: #34495e;
+            border-left-color: #3498db;
+        }
+
+        .channel-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .channel-service {
+            font-size: 11px;
+            color: #95a5a6;
+        }
+
+        /* Main Chat Area */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 2px solid #ecf0f1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chat-header h1 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+
+        .message-badge {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .message-badge.bot {
+            background: #9b59b6;
+        }
+
+        .message-text {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #2c3e50;
+            line-height: 1.5;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .message.own .message-text {
+            background: #3498db;
+            color: white;
+        }
+
+        .message.bot .message-text {
+            background: #f3e5f5;
+            border-left: 3px solid #9b59b6;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            padding: 10px 30px;
+            font-size: 13px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        /* Chat Input */
+        .chat-input {
+            padding: 20px 30px;
+            background: white;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .attach-btn {
+            width: 44px;
+            height: 44px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .attach-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .file-input-chat {
+            display: none;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .send-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            white-space: nowrap;
+            height: 44px;
+        }
+
+        .send-btn:hover {
+            background: #2980b9;
+        }
+
+        .send-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* File Preview in Chat Input */
+        .file-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-preview.show {
+            display: flex;
+        }
+
+        .file-preview-icon {
+            font-size: 32px;
+        }
+
+        .file-preview-info {
+            flex: 1;
+        }
+
+        .file-preview-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-preview-size {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .file-preview-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-preview-remove:hover {
+            background: #c0392b;
+        }
+
+        /* File Message */
+        .message-file {
+            background: #e8f4f8;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .message-file:hover {
+            background: #d4e9f5;
+            transform: translateX(3px);
+        }
+
+        .message-file-icon {
+            font-size: 28px;
+        }
+
+        .message-file-info {
+            flex: 1;
+        }
+
+        .message-file-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .message-file-size {
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+
+        .message-file-download {
+            color: #3498db;
+            font-size: 20px;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            color: #95a5a6;
+        }
+
+        .empty-state h2 {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .welcome-message h3 {
+            margin-bottom: 10px;
+        }
+
+        /* Scrollbar Styling */
+        .chat-messages::-webkit-scrollbar,
+        .channels-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb,
+        .channels-list::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track,
+        .channels-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                width: 100%;
+                z-index: 10;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="chat-container">
-        <!-- Header -->
-        <header class="chat-header">
-            <div class="header-left">
-                <button class="btn-back" id="backBtn" title="Back to Groups">
-                    ← Back
+        <!-- Sidebar with Channels -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>🎓 CampusAid</h2>
+                <div class="user-info">
+                    <span id="sidebarUserName">Loading...</span>
+                </div>
+                <button class="back-btn" onclick="window.location.href='/services.html'">
+                    ← Back to Services
                 </button>
-                <div class="group-info">
-                    <h2 class="group-name" id="groupName">Loading...</h2>
-                    <span class="member-count" id="memberCount">0 members</span>
-                </div>
             </div>
-            <div class="header-right">
-                <div class="online-indicator">
-                    <span class="status-dot"></span>
-                    <span id="onlineCount">0 online</span>
-                </div>
+            
+            <div class="channels-list" id="channelsList">
+                <div class="loading">Loading channels...</div>
             </div>
-        </header>
-
-        <!-- Messages Area -->
-        <main class="messages-area" id="messagesArea">
-            <div class="messages-loading">Loading messages...</div>
-        </main>
-
-        <!-- Typing Indicator -->
-        <div class="typing-indicator" id="typingIndicator" style="display: none;">
-            <span class="typing-user"></span> is typing
-            <span class="typing-dots">
-                <span>.</span><span>.</span><span>.</span>
-            </span>
         </div>
 
-        <!-- Message Input -->
-        <footer class="message-input-area">
-            <form id="messageForm">
+        <!-- Main Chat Area -->
+        <div class="chat-main">
+            <div class="chat-header">
+                <h1 id="channelName">Select a channel</h1>
+                <p id="channelDescription">Choose a channel from the sidebar to start chatting</p>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state">
+                    <h2>👋 Welcome to CampusAid</h2>
+                    <p>Select a channel to start a conversation</p>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">
+                Someone is typing...
+            </div>
+
+            <div class="chat-input">
+                <div class="file-preview" id="filePreview">
+                    <div class="file-preview-icon">📎</div>
+                    <div class="file-preview-info">
+                        <div class="file-preview-name" id="filePreviewName">document.pdf</div>
+                        <div class="file-preview-size" id="filePreviewSize">2.5 MB</div>
+                    </div>
+                    <button class="file-preview-remove" id="filePreviewRemove">×</button>
+                </div>
+
                 <div class="input-wrapper">
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="Type a message..."
-                        rows="1"
-                        maxlength="5000"
-                    ></textarea>
                     <div class="input-actions">
-                        <input 
-                            type="file" 
-                            id="fileInput" 
-                            accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.webp"
-                            style="display: none;"
-                        >
-                        <button type="button" class="btn-attach" id="attachBtn" title="Attach file">
+                        <input type="file" id="fileInputChat" class="file-input-chat" accept=".pdf,.docx,.xlsx,.xls,.txt,.png,.jpg,.jpeg">
+                        <button class="attach-btn" id="attachBtn" title="Attach file">
                             📎
                         </button>
-                        <button type="submit" class="btn-send" id="sendBtn" title="Send message">
-                            ➤
-                        </button>
                     </div>
-                </div>
-            </form>
-            <div class="file-preview" id="filePreview" style="display: none;">
-                <div class="file-preview-content">
-                    <span class="file-preview-name" id="filePreviewName"></span>
-                    <span class="file-preview-size" id="filePreviewSize"></span>
-                    <button class="btn-remove-file" id="removeFileBtn">×</button>
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message... (Press Enter to send)"
+                        rows="1"
+                        disabled
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn" disabled>Send</button>
                 </div>
             </div>
-            <div class="input-hint">
-                Press Enter to send, Shift+Enter for new line • Max 10MB per file
-            </div>
-        </footer>
+        </div>
     </div>
 
     <!-- Socket.IO Client -->
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/socketClient.js"></script>
-    <script src="/js/chat.js"></script>
+    
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let socket = null;
+        let currentChannel = null;
+        let currentUser = null;
+        let attachedFile = null; // Store attached file
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Check authentication
+        function checkAuth() {
+            const user = sessionStorage.getItem('user');
+            if (!user) {
+                window.location.href = '/';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        // Initialize Socket.IO
+        function initializeSocket() {
+            socket = io('http://localhost:3000', {
+                withCredentials: true
+            });
+
+            socket.on('connect', () => {
+                console.log('Socket connected:', socket.id);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Socket disconnected');
+            });
+
+            socket.on('new_message', (message) => {
+                console.log('New message received:', message);
+                displayMessage(message);
+                scrollToBottom();
+            });
+
+            socket.on('user_typing', (data) => {
+                if (data.userId !== currentUser.id && data.channelId === currentChannel.id) {
+                    showTypingIndicator(data.userName);
+                }
+            });
+
+            socket.on('bot_typing', (data) => {
+                if (data.channelId === currentChannel.id) {
+                    showTypingIndicator(data.botName + ' (AI)');
+                }
+            });
+
+            socket.on('error', (error) => {
+                console.error('Socket error:', error);
+            });
+        }
+
+        // Load channels
+        async function loadChannels() {
+            try {
+                const response = await fetch(`${API_BASE}/channels`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) throw new Error('Failed to load channels');
+
+                const data = await response.json();
+                const channels = data.data || [];
+
+                const channelsList = document.getElementById('channelsList');
+                channelsList.innerHTML = '';
+
+                if (channels.length === 0) {
+                    channelsList.innerHTML = '<div class="loading">No channels available</div>';
+                    return;
+                }
+
+                channels.forEach(channel => {
+                    const item = document.createElement('div');
+                    item.className = 'channel-item';
+                    item.dataset.channelId = channel.id;
+                    item.onclick = (e) => loadChannel(channel.id, e);
+                    
+                    item.innerHTML = `
+                        <div class="channel-name">${channel.channel_name}</div>
+                        <div class="channel-service">${channel.service_name}</div>
+                    `;
+                    
+                    channelsList.appendChild(item);
+                });
+
+                // Auto-select channel from URL
+                const channelId = getUrlParameter('channel');
+                if (channelId) {
+                    loadChannel(parseInt(channelId));
+                }
+            } catch (error) {
+                console.error('Error loading channels:', error);
+                document.getElementById('channelsList').innerHTML = 
+                    '<div class="loading">Error loading channels</div>';
+            }
+        }
+
+        // Load channel and messages
+        async function loadChannel(channelId, event = null) {
+            try {
+                // Update active state in sidebar
+                document.querySelectorAll('.channel-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // If called from a click event, mark that channel as active
+                if (event) {
+                    event.target.closest('.channel-item')?.classList.add('active');
+                } else {
+                    // If auto-loaded from URL, find and mark the matching channel
+                    document.querySelectorAll('.channel-item').forEach(item => {
+                        if (item.dataset.channelId == channelId) {
+                            item.classList.add('active');
+                        }
+                    });
+                }
+
+                // Fetch channel details
+                const channelResponse = await fetch(`${API_BASE}/channels/${channelId}`, {
+                    credentials: 'include'
+                });
+
+                if (!channelResponse.ok) throw new Error('Failed to load channel');
+
+                const channelData = await channelResponse.json();
+                currentChannel = channelData.data;
+
+                // Update header
+                document.getElementById('channelName').textContent = currentChannel.channel_name;
+                document.getElementById('channelDescription').textContent = 
+                    currentChannel.service_name || 'Service channel';
+
+                // Join channel via socket
+                if (socket) {
+                    socket.emit('join_channel', {
+                        channelId: currentChannel.id,
+                        userId: currentUser.id,
+                        userName: currentUser.full_name || currentUser.email
+                    });
+                }
+
+                // Load messages
+                const messagesResponse = await fetch(`${API_BASE}/channels/${channelId}/messages`, {
+                    credentials: 'include'
+                });
+
+                const messagesData = await messagesResponse.json();
+                const messages = messagesData.data || [];
+
+                // Display messages
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = '';
+
+                if (messages.length === 0) {
+                    chatMessages.innerHTML = `
+                        <div class="welcome-message">
+                            <h3>👋 Welcome to ${currentChannel.channel_name}</h3>
+                            <p>Start a conversation by sending a message below!</p>
+                        </div>
+                    `;
+                } else {
+                    messages.forEach(message => displayMessage(message, false));
+                }
+
+                scrollToBottom();
+
+                // Enable input
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('messageInput').focus();
+
+            } catch (error) {
+                console.error('Error loading channel:', error);
+                alert('Failed to load channel. Please try again.');
+            }
+        }
+
+        // Display a message
+        function displayMessage(message, animate = true) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Remove welcome message if it exists
+            const welcome = chatMessages.querySelector('.welcome-message');
+            if (welcome) welcome.remove();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            if (message.sender_id === currentUser.id) {
+                messageDiv.classList.add('own');
+            }
+            
+            if (message.is_bot_message) {
+                messageDiv.classList.add('bot');
+            }
+
+            const senderName = message.sender_name || message.bot_name || 'Unknown';
+            const initial = senderName.charAt(0).toUpperCase();
+            const timestamp = new Date(message.created_at).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            // Check if message has a file
+            const hasFile = message.file_id || message.fileName;
+            let fileHTML = '';
+            
+            if (hasFile) {
+                const fileName = message.fileName || message.original_name || 'file';
+                const fileSize = message.fileSize || message.file_size || 0;
+                const fileId = message.file_id || message.fileId;
+                
+                fileHTML = `
+                    <div class="message-file" onclick="window.open('${API_BASE}/files/${fileId}/download', '_blank')">
+                        <div class="message-file-icon">📎</div>
+                        <div class="message-file-info">
+                            <div class="message-file-name">${escapeHtml(fileName)}</div>
+                            <div class="message-file-size">${formatFileSize(fileSize)}</div>
+                        </div>
+                        <div class="message-file-download">⬇</div>
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${initial}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-sender">${senderName}</span>
+                        ${message.is_bot_message ? '<span class="message-badge bot">BOT</span>' : ''}
+                        <span class="message-time">${timestamp}</span>
+                    </div>
+                    <div class="message-text">${escapeHtml(message.message_text)}</div>
+                    ${fileHTML}
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message && !attachedFile) return;
+            if (!currentChannel) return;
+
+            try {
+                // If there's an attached file, upload it first
+                if (attachedFile) {
+                    const formData = new FormData();
+                    formData.append('file', attachedFile);
+                    formData.append('service_id', currentChannel.service_id);
+                    formData.append('channel_id', currentChannel.id);
+
+                    // Upload file
+                    const uploadResponse = await fetch(`${API_BASE}/files/upload`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: formData
+                    });
+
+                    const uploadData = await uploadResponse.json();
+
+                    if (uploadData.success) {
+                        const fileId = uploadData.data.id;
+                        
+                        // Send message with file reference
+                        socket.emit('send_message', {
+                            channelId: currentChannel.id,
+                            userId: currentUser.id,
+                            userName: currentUser.full_name || currentUser.email,
+                            message: message || `📎 Uploaded: ${attachedFile.name}`,
+                            fileId: fileId,
+                            fileName: attachedFile.name,
+                            fileSize: attachedFile.size
+                        });
+
+                        // Clear attached file
+                        clearAttachedFile();
+                    } else {
+                        alert('Failed to upload file');
+                        return;
+                    }
+                } else {
+                    // Send text-only message
+                    socket.emit('send_message', {
+                        channelId: currentChannel.id,
+                        userId: currentUser.id,
+                        userName: currentUser.full_name || currentUser.email,
+                        message: message
+                    });
+                }
+
+                // Clear input
+                input.value = '';
+                input.style.height = 'auto';
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
+        }
+
+        // File attachment handlers
+        document.getElementById('attachBtn').addEventListener('click', () => {
+            document.getElementById('fileInputChat').click();
+        });
+
+        document.getElementById('fileInputChat').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Check file size (10MB max)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File too large. Maximum size is 10MB.');
+                    return;
+                }
+
+                attachedFile = file;
+                showFilePreview(file);
+            }
+        });
+
+        document.getElementById('filePreviewRemove').addEventListener('click', () => {
+            clearAttachedFile();
+        });
+
+        function showFilePreview(file) {
+            const preview = document.getElementById('filePreview');
+            const fileName = document.getElementById('filePreviewName');
+            const fileSize = document.getElementById('filePreviewSize');
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            preview.classList.add('show');
+        }
+
+        function clearAttachedFile() {
+            attachedFile = null;
+            document.getElementById('fileInputChat').value = '';
+            document.getElementById('filePreview').classList.remove('show');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Typing indicator
+        let typingTimeout;
+        function handleTyping() {
+            if (!currentChannel) return;
+
+            clearTimeout(typingTimeout);
+            
+            socket.emit('typing', {
+                channelId: currentChannel.id,
+                userId: currentUser.id,
+                userName: currentUser.full_name || currentUser.email
+            });
+
+            typingTimeout = setTimeout(() => {
+                socket.emit('stop_typing', {
+                    channelId: currentChannel.id,
+                    userId: currentUser.id
+                });
+            }, 1000);
+        }
+
+        function showTypingIndicator(userName) {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.textContent = `${userName} is typing...`;
+            indicator.classList.add('show');
+            
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Helper functions
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Auto-resize textarea
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('messageInput');
+            
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                handleTyping();
+            });
+
+            textarea.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentUser = checkAuth();
+            if (!currentUser) return;
+
+            // Display user name
+            document.getElementById('sidebarUserName').textContent = 
+                currentUser.full_name || currentUser.email;
+
+            // Initialize socket
+            initializeSocket();
+
+            // Load channels
+            await loadChannels();
+        });
+    </script>
 </body>
 </html>

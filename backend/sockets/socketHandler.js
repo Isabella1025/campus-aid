@@ -1,212 +1,194 @@
-const MessagingService = require('../services/MessagingService');
+const { query } = require('../config/database');
 const BotService = require('../services/BotService');
-const Bot = require('../models/Bot');
-const Group = require('../models/Group');
 
-// Store active users and their socket connections
-const activeUsers = new Map(); // userId -> { socketId, groupId, userName }
+/**
+ * Socket.IO Handler for Real-Time Chat
+ * Manages WebSocket connections and real-time messaging
+ */
 
-function setupSocketHandlers(io) {
+module.exports = (io) => {
+  // Store active users per channel
+  const channelUsers = new Map();
+
   io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    console.log('✓ User connected:', socket.id);
 
-    // Handle user join
-    socket.on('user:join', async (data) => {
-      const { userId, userName, groupId } = data;
+    /**
+     * Join a channel
+     */
+    socket.on('join_channel', async (data) => {
+      try {
+        const { channelId, userId, userName } = data;
+        
+        console.log(`User ${userName} (${userId}) joining channel ${channelId}`);
+        
+        // Leave previous channels
+        const rooms = Array.from(socket.rooms);
+        rooms.forEach(room => {
+          if (room !== socket.id) {
+            socket.leave(room);
+          }
+        });
 
-      // Store user info
-      activeUsers.set(userId, {
-        socketId: socket.id,
-        groupId: groupId,
-        userName: userName
-      });
+        // Join new channel
+        const channelRoom = `channel_${channelId}`;
+        socket.join(channelRoom);
+        
+        // Store user info
+        socket.userId = userId;
+        socket.userName = userName;
+        socket.channelId = channelId;
 
-      // Join the group room
-      socket.join(`group:${groupId}`);
+        // Track users in channel
+        if (!channelUsers.has(channelRoom)) {
+          channelUsers.set(channelRoom, new Set());
+        }
+        channelUsers.get(channelRoom).add(socket.id);
 
-      console.log(`User ${userName} (${userId}) joined group ${groupId}`);
+        console.log(`✓ User ${userName} joined ${channelRoom}`);
+        
+        // Notify others in channel
+        socket.to(channelRoom).emit('user_joined', {
+          userId,
+          userName,
+          message: `${userName} joined the channel`
+        });
 
-      // Notify other users in the group
-      socket.to(`group:${groupId}`).emit('user:joined', {
-        userId: userId,
-        userName: userName,
-        timestamp: new Date().toISOString()
-      });
-
-      // Send list of online users in this group
-      const onlineUsers = getOnlineUsersInGroup(groupId);
-      io.to(`group:${groupId}`).emit('users:online', onlineUsers);
+      } catch (error) {
+        console.error('Error joining channel:', error);
+        socket.emit('error', { message: 'Failed to join channel' });
+      }
     });
 
-    // Handle sending message
-    socket.on('message:send', async (data) => {
-      console.log('Received message:send event:', data);
-      
+    /**
+     * Send a message
+     */
+    socket.on('send_message', async (data) => {
       try {
-        const { userId, groupId, message, userName } = data;
-
-        if (!userId || !groupId || !message) {
-          console.error('Missing required fields:', { userId, groupId, message });
-          socket.emit('message:error', {
-            message: 'Missing required fields'
-          });
+        const { channelId, userId, userName, message, fileId, fileName, fileSize } = data;
+        
+        if (!message || !message.trim()) {
           return;
         }
 
-        console.log('Saving message to database...');
-        
+        console.log(`Message from ${userName} in channel ${channelId}:`, message);
+        if (fileId) console.log(`  - Attached file: ${fileName}`);
+
         // Save message to database
-        const result = await MessagingService.sendMessage({
-          group_id: groupId,
-          message_text: message,
-          message_type: 'text'
-        }, userId);
+        const result = await query(
+          `INSERT INTO messages (channel_id, sender_id, message_text, message_type, is_bot_message, file_id, created_at) 
+           VALUES (?, ?, ?, ?, FALSE, ?, NOW())`,
+          [channelId, userId, message.trim(), fileId ? 'file' : 'text', fileId || null]
+        );
 
-        console.log('Save result:', result);
+        const messageId = result.insertId;
 
-        if (result.success) {
-          console.log('Broadcasting message to group:', groupId);
+        // Fetch the complete message with sender and file info
+        const [savedMessage] = await query(
+          `SELECT 
+            m.*,
+            u.full_name as sender_name,
+            u.student_id as sender_student_id,
+            f.original_name as fileName,
+            f.file_size as fileSize
+          FROM messages m
+          LEFT JOIN users u ON m.sender_id = u.id
+          LEFT JOIN files f ON m.file_id = f.id
+          WHERE m.id = ?`,
+          [messageId]
+        );
+
+        // Broadcast to all users in the channel
+        const channelRoom = `channel_${channelId}`;
+        io.to(channelRoom).emit('new_message', savedMessage);
+
+        console.log(`✓ Message ${messageId} broadcasted to ${channelRoom}`);
+
+        // Check if message mentions a bot and generate response
+        if (BotService.mentionsBot(message)) {
+          console.log('Bot mention detected - generating AI response...');
           
-          // Broadcast message to all users in the group
-          io.to(`group:${groupId}`).emit('message:new', {
-            ...result.data,
-            sender_name: userName
+          // Show typing indicator
+          io.to(channelRoom).emit('bot_typing', {
+            channelId,
+            botName: 'Bot'
           });
-          
-          console.log('Message broadcasted successfully');
-        } else {
-          console.error('Failed to save message:', result.message);
-          // Send error back to sender
-          socket.emit('message:error', {
-            message: result.message
-          });
-        }
 
-        // === Bot mention detection & trigger ===
-        try {
-          const messageText = (result.data && result.data.message_text) || message;
-          const mentionRegex = /@([A-Za-z0-9_]+)/g;
-          const mentions = [];
-          let m;
-          while ((m = mentionRegex.exec(messageText)) !== null) mentions.push(m[1].toLowerCase());
-
-          if (mentions.length > 0) {
-            console.log('Bot mentions detected:', mentions);
-            // Get group to obtain course_id (used by Bot.findByNameInCourse)
-            const group = await Group.findById(groupId);
-            const courseId = group && group.course_id;
-
-            for (const name of mentions) {
-              const bot = courseId ? await Bot.findByNameInCourse(name, courseId) : null;
-              if (!bot) continue;
-
-              const assigned = bot.is_join_bot ? true : await Bot.isAssignedToGroup(bot.id, groupId);
-              if (!assigned) continue;
-
-              console.log('Triggering bot:', bot.bot_name);
-              // If your BotService exposes a handler to process mentions, call it.
-              if (typeof BotService.handleMention === 'function') {
-                // pass bot and the saved message (result.data) to the service
-                BotService.handleMention({
-                  bot,
-                  message: result.data,
-                  groupId,
-                  userId,
-                  userName
-                }).catch(err => console.error('BotService.handleMention error:', err));
-              } else {
-                console.warn('BotService.handleMention not implemented — implement to generate bot responses.');
-              }
-            }
+          // Process message and generate bot response
+          try {
+            await BotService.processMessage(channelId, message, (botMessage) => {
+              // Broadcast bot response
+              io.to(channelRoom).emit('new_message', botMessage);
+              console.log(`✓ Bot response sent to ${channelRoom}`);
+            }, fileId); // Pass fileId for bot to analyze the file
+          } catch (botError) {
+            console.error('Error generating bot response:', botError);
           }
-        } catch (err) {
-          console.error('Error detecting/triggering bot mentions:', err);
         }
-        // === end bot mention detection ===
+
       } catch (error) {
-        console.error('Socket message send error:', error);
-        socket.emit('message:error', {
-          message: 'Failed to send message'
-        });
+        console.error('Error sending message:', error);
+        socket.emit('error', { message: 'Failed to send message' });
       }
     });
 
-    // Handle typing indicator
-    socket.on('typing:start', (data) => {
-      const { userId, userName, groupId } = data;
-      socket.to(`group:${groupId}`).emit('user:typing', {
-        userId: userId,
-        userName: userName
-      });
-    });
-
-    socket.on('typing:stop', (data) => {
-      const { userId, groupId } = data;
-      socket.to(`group:${groupId}`).emit('user:stopped-typing', {
-        userId: userId
-      });
-    });
-
-    // Handle user leaving group
-    socket.on('user:leave', (data) => {
-      const { userId, groupId, userName } = data;
+    /**
+     * Typing indicator
+     */
+    socket.on('typing', (data) => {
+      const { channelId, userId, userName } = data;
+      const channelRoom = `channel_${channelId}`;
       
-      socket.leave(`group:${groupId}`);
-      
-      // Notify others
-      socket.to(`group:${groupId}`).emit('user:left', {
-        userId: userId,
-        userName: userName,
-        timestamp: new Date().toISOString()
+      socket.to(channelRoom).emit('user_typing', {
+        userId,
+        userName,
+        channelId
       });
-
-      // Update online users
-      const onlineUsers = getOnlineUsersInGroup(groupId);
-      io.to(`group:${groupId}`).emit('users:online', onlineUsers);
     });
 
-    // Handle disconnect
+    /**
+     * Stop typing
+     */
+    socket.on('stop_typing', (data) => {
+      const { channelId, userId } = data;
+      const channelRoom = `channel_${channelId}`;
+      
+      socket.to(channelRoom).emit('user_stopped_typing', {
+        userId,
+        channelId
+      });
+    });
+
+    /**
+     * Disconnect
+     */
     socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
+      console.log('✗ User disconnected:', socket.id);
 
-      // Find and remove user from active users
-      for (const [userId, userData] of activeUsers.entries()) {
-        if (userData.socketId === socket.id) {
-          const groupId = userData.groupId;
-          const userName = userData.userName;
-
-          activeUsers.delete(userId);
-
-          // Notify group members
-          socket.to(`group:${groupId}`).emit('user:left', {
-            userId: userId,
-            userName: userName,
-            timestamp: new Date().toISOString()
-          });
-
-          // Update online users
-          const onlineUsers = getOnlineUsersInGroup(groupId);
-          io.to(`group:${groupId}`).emit('users:online', onlineUsers);
-
-          break;
+      // Remove from channel users tracking
+      channelUsers.forEach((users, room) => {
+        if (users.has(socket.id)) {
+          users.delete(socket.id);
+          
+          // Notify others
+          if (socket.userName) {
+            io.to(room).emit('user_left', {
+              userId: socket.userId,
+              userName: socket.userName,
+              message: `${socket.userName} left the channel`
+            });
+          }
         }
-      }
+      });
+    });
+
+    /**
+     * Error handling
+     */
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
     });
   });
-}
 
-// Helper function to get online users in a group
-function getOnlineUsersInGroup(groupId) {
-  const users = [];
-  for (const [userId, userData] of activeUsers.entries()) {
-    if (userData.groupId === groupId) {
-      users.push({
-        userId: userId,
-        userName: userData.userName
-      });
-    }
-  }
-  return users;
-}
-
-module.exports = { setupSocketHandlers };
+  console.log('✓ Socket.IO handlers initialized');
+};

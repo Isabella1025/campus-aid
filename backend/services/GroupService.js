@@ -52,7 +52,7 @@ class GroupService {
       // Create group
       const groupId = await Group.create({
         group_name: groupData.group_name.trim(),
-        course_id: courseId,
+        service_id: courseId,
         created_by: creatorId
       });
 
@@ -142,7 +142,7 @@ class GroupService {
         };
       }
 
-      // Check if requester is member (or lecturer)
+      // Check if requester is member (or service_admin)
       const requesterIsMember = await Group.isMember(groupId, requesterId);
       if (!requesterIsMember) {
         return {
@@ -152,7 +152,7 @@ class GroupService {
       }
 
       // Check if user to add is enrolled in course
-      const isEnrolled = await Course.isUserEnrolled(userIdToAdd, group.course_id);
+      const isEnrolled = await Course.isUserEnrolled(userIdToAdd, group.service_id);
       if (!isEnrolled) {
         return {
           success: false,
@@ -221,8 +221,8 @@ class GroupService {
         };
       }
 
-      // Only creator or lecturer can delete
-      if (group.created_by !== requesterId && userRole !== 'lecturer') {
+      // Only creator or service_admin can delete
+      if (group.created_by !== requesterId && userRole !== 'service_admin') {
         return {
           success: false,
           message: 'You do not have permission to delete this group'
@@ -260,7 +260,7 @@ class GroupService {
         SELECT u.id, u.student_id, u.full_name, u.email, u.role
         FROM users u
         INNER JOIN course_enrollments ce ON u.id = ce.user_id
-        WHERE ce.course_id = ? AND u.is_active = TRUE
+        WHERE ce.service_id = ? AND u.is_active = TRUE
         ORDER BY u.role DESC, u.full_name ASC
       `;
       

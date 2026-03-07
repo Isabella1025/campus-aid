@@ -43,7 +43,7 @@ class FileService {
         file_type: fileData.mimetype,
         file_size: fileData.size,
         uploaded_by: uploaderId,
-        course_id: courseId,
+        service_id: courseId,
         group_id: groupId
       });
 
@@ -112,7 +112,7 @@ class FileService {
         file_type: fileData.mimetype,
         file_size: fileData.size,
         uploaded_by: uploaderId,
-        course_id: group.course_id,
+        service_id: group.service_id,
         group_id: groupId,
         message_id: messageId
       });
@@ -153,7 +153,7 @@ class FileService {
       }
 
       // Verify user has access (enrolled in course)
-      const isEnrolled = await Course.isUserEnrolled(userId, file.course_id);
+      const isEnrolled = await Course.isUserEnrolled(userId, file.service_id);
       if (!isEnrolled) {
         return {
           success: false,
@@ -212,8 +212,8 @@ class FileService {
         };
       }
 
-      // Only uploader or lecturer can delete
-      if (file.uploaded_by !== userId && userRole !== 'lecturer') {
+      // Only uploader or service_admin can delete
+      if (file.uploaded_by !== userId && userRole !== 'service_admin') {
         return {
           success: false,
           message: 'You do not have permission to delete this file'

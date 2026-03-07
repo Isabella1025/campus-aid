@@ -44,17 +44,17 @@ class User {
   static async isEnrolledInCourse(userId, courseId) {
     const sql = `
       SELECT * FROM course_enrollments 
-      WHERE user_id = ? AND course_id = ?
+      WHERE user_id = ? AND service_id = ?
     `;
     const result = await queryOne(sql, [userId, courseId]);
     return result !== null;
   }
 
-  // Get user's enrolled courses
-  static async getEnrolledCourses(userId) {
+  // Get user's enrolled services
+  static async getEnrolledservices(userId) {
     const sql = `
-      SELECT c.* FROM courses c
-      INNER JOIN course_enrollments ce ON c.id = ce.course_id
+      SELECT c.* FROM services c
+      INNER JOIN course_enrollments ce ON c.id = ce.service_id
       WHERE ce.user_id = ? AND c.is_active = TRUE
     `;
     return await query(sql, [userId]);
@@ -69,7 +69,7 @@ class User {
         (SELECT created_at FROM messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1) as last_message_time
       FROM \`groups\` g
       INNER JOIN group_members gm ON g.id = gm.group_id
-      WHERE gm.user_id = ? AND g.course_id = ? AND g.is_active = TRUE
+      WHERE gm.user_id = ? AND g.service_id = ? AND g.is_active = TRUE
       ORDER BY last_message_time DESC
     `;
     return await query(sql, [userId, courseId]);

@@ -86,8 +86,8 @@ class UserService {
         };
       }
 
-      // Get enrolled courses
-      const courses = await User.getEnrolledCourses(userId);
+      // Get enrolled services
+      const services = await User.getEnrolledservices(userId);
 
       return {
         success: true,
@@ -100,7 +100,7 @@ class UserService {
             role: user.role,
             last_login: user.last_login
           },
-          courses: courses
+          services: services
         }
       };
     } catch (error) {

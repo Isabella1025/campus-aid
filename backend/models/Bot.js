@@ -16,7 +16,7 @@ class Bot {
   static async findByNameInCourse(botName, courseId) {
     const sql = `
       SELECT * FROM bots
-      WHERE LOWER(bot_name) = LOWER(?) AND course_id = ? AND is_active = TRUE
+      WHERE LOWER(bot_name) = LOWER(?) AND service_id = ? AND is_active = TRUE
     `;
     return await queryOne(sql, [botName, courseId]);
   }
@@ -29,7 +29,7 @@ class Bot {
         (SELECT COUNT(*) FROM bot_group_assignments WHERE bot_id = b.id) as group_count
       FROM bots b
       LEFT JOIN users u ON b.created_by = u.id
-      WHERE b.course_id = ? AND b.is_active = TRUE
+      WHERE b.service_id = ? AND b.is_active = TRUE
       ORDER BY b.created_at DESC
     `;
     return await query(sql, [courseId]);
@@ -51,13 +51,13 @@ class Bot {
   // Create new bot
   static async create(botData) {
     const sql = `
-      INSERT INTO bots (bot_name, course_id, created_by, instructions, 
+      INSERT INTO bots (bot_name, service_id, created_by, instructions, 
                         personality, model, is_join_bot)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const result = await query(sql, [
       botData.bot_name,
-      botData.course_id,
+      botData.service_id,
       botData.created_by,
       botData.instructions || null,
       botData.personality || null,

@@ -151,8 +151,8 @@ class MessagingService {
         };
       }
 
-      // Only sender or lecturer can delete
-      if (message.sender_id !== userId && userRole !== 'lecturer') {
+      // Only sender or service_admin can delete
+      if (message.sender_id !== userId && userRole !== 'service_admin') {
         return {
           success: false,
           message: 'You do not have permission to delete this message'

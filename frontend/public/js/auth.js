@@ -1,119 +1,258 @@
-// Authentication handling
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
-    const loginBtn = document.getElementById('loginBtn');
-    const loginBtnText = document.getElementById('loginBtnText');
-    const loginBtnLoader = document.getElementById('loginBtnLoader');
-    const errorMessage = document.getElementById('errorMessage');
-    const successMessage = document.getElementById('successMessage');
+// CampusAid Authentication Handler
+const API_BASE = 'http://localhost:3000/api';
 
-    // Check if user is already logged in
-    checkExistingSession();
-
-    // Handle form submission
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await handleLogin();
+// Check for existing session on page load
+async function checkExistingSession() {
+  try {
+    const response = await fetch(`${API_BASE}/session/verify`, {
+      credentials: 'include'
     });
-
-    async function handleLogin() {
-        const courseCode = document.getElementById('courseCode').value.trim();
-        const studentId = document.getElementById('studentId').value.trim();
-
-        // Validate inputs
-        if (!courseCode || !studentId) {
-            showError('Please fill in all fields');
-            return;
-        }
-
-        // Show loading state
-        setLoadingState(true);
-        hideMessages();
-
-        try {
-            const response = await fetch('/api/session/start', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    courseCode: courseCode,
-                    studentId: studentId
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showSuccess('Login successful! Redirecting...');
-                
-                // Store user data in sessionStorage for quick access
-                sessionStorage.setItem('userData', JSON.stringify(data.data));
-                
-                // Redirect to group list after short delay
-                setTimeout(() => {
-                    window.location.href = '/group-list.html';
-                }, 1000);
-            } else {
-                showError(data.message || 'Login failed. Please try again.');
-                setLoadingState(false);
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            showError('An error occurred. Please try again.');
-            setLoadingState(false);
-        }
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        console.log('Existing session found, redirecting...');
+        // User is already logged in, redirect to services
+        window.location.href = '/services.html';
+      }
     }
+  } catch (error) {
+    console.log('No existing session found');
+  }
+}
 
-    async function checkExistingSession() {
-        try {
-            const response = await fetch('/api/session/verify');
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    // User is already logged in, redirect to group list
-                    window.location.href = '/group-list.html';
-                }
-            }
-        } catch (error) {
-            // No existing session or error, stay on login page
-            console.log('No existing session');
-        }
-    }
-
-    function setLoadingState(loading) {
-        if (loading) {
-            loginBtn.disabled = true;
-            loginBtnText.style.opacity = '0';
-            loginBtnLoader.style.display = 'block';
-        } else {
-            loginBtn.disabled = false;
-            loginBtnText.style.opacity = '1';
-            loginBtnLoader.style.display = 'none';
-        }
-    }
-
-    function showError(message) {
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
-        successMessage.style.display = 'none';
-    }
-
-    function showSuccess(message) {
-        successMessage.textContent = message;
+// Handle login form submission
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  console.log('Login form submitted');
+  
+  // Get form elements
+  const emailInput = document.getElementById('email');
+  const studentIdInput = document.getElementById('studentId');
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginBtnText = document.getElementById('loginBtnText');
+  const loginBtnLoader = document.getElementById('loginBtnLoader');
+  
+  // Hide previous messages
+  if (errorMessage) errorMessage.style.display = 'none';
+  if (successMessage) successMessage.style.display = 'none';
+  
+  // Get values
+  const email = emailInput ? emailInput.value.trim() : '';
+  const studentId = studentIdInput ? studentIdInput.value.trim() : '';
+  
+  // Validation
+  if (!email && !studentId) {
+    showError('Please enter your email or student ID');
+    return;
+  }
+  
+  // Prepare login data
+  const loginData = {};
+  if (email) loginData.email = email;
+  if (studentId) loginData.student_id = studentId;
+  
+  console.log('Attempting login with:', loginData);
+  
+  try {
+    // Show loading state
+    if (loginBtn) loginBtn.disabled = true;
+    if (loginBtnText) loginBtnText.textContent = 'Signing in...';
+    if (loginBtnLoader) loginBtnLoader.style.display = 'inline-block';
+    
+    const response = await fetch(`${API_BASE}/session/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(loginData)
+    });
+    
+    const data = await response.json();
+    console.log('Login response:', data);
+    
+    if (response.ok && data.success) {
+      // Store user data in sessionStorage for quick access
+      sessionStorage.setItem('user', JSON.stringify(data.data.user));
+      sessionStorage.setItem('services', JSON.stringify(data.data.services || []));
+      sessionStorage.setItem('channels', JSON.stringify(data.data.channels || []));
+      
+      // Show success message
+      if (successMessage) {
+        successMessage.textContent = 'Login successful! Redirecting...';
         successMessage.style.display = 'block';
-        errorMessage.style.display = 'none';
+      }
+      
+      // Redirect to services page
+      setTimeout(() => {
+        window.location.href = '/services.html';
+      }, 500);
+    } else {
+      showError(data.error || 'Login failed. Please check your credentials.');
     }
+  } catch (error) {
+    console.error('Login error:', error);
+    showError('Connection error. Please check if the server is running.');
+  } finally {
+    // Reset button state
+    if (loginBtn) loginBtn.disabled = false;
+    if (loginBtnText) loginBtnText.textContent = 'Sign In';
+    if (loginBtnLoader) loginBtnLoader.style.display = 'none';
+  }
+}
 
-    function hideMessages() {
-        errorMessage.style.display = 'none';
-        successMessage.style.display = 'none';
-    }
+// Handle logout
+async function handleLogout() {
+  try {
+    console.log('Logging out...');
+    
+    const response = await fetch(`${API_BASE}/session/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    
+    // Clear session storage regardless of response
+    sessionStorage.clear();
+    localStorage.clear();
+    
+    // Redirect to login page
+    window.location.href = '/';
+  } catch (error) {
+    console.error('Logout error:', error);
+    // Clear storage and redirect anyway
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = '/';
+  }
+}
 
-    // Auto-fill for testing (remove in production)
-    if (window.location.hostname === 'localhost' && window.location.search.includes('test')) {
-        document.getElementById('courseCode').value = 'CS101';
-        document.getElementById('studentId').value = 'STU001';
+// Show error message
+function showError(message) {
+  console.error('Error:', message);
+  
+  const errorDiv = document.getElementById('errorMessage');
+  if (errorDiv) {
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      errorDiv.style.display = 'none';
+    }, 5000);
+  } else {
+    alert(message);
+  }
+}
+
+// Show success message
+function showSuccess(message) {
+  console.log('Success:', message);
+  
+  const successDiv = document.getElementById('successMessage');
+  if (successDiv) {
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+  }
+}
+
+// Get current user from session
+function getCurrentUser() {
+  const userJson = sessionStorage.getItem('user');
+  return userJson ? JSON.parse(userJson) : null;
+}
+
+// Check if user is authenticated
+function isAuthenticated() {
+  return getCurrentUser() !== null;
+}
+
+// Check if user is service admin
+function isServiceAdmin() {
+  const user = getCurrentUser();
+  return user && user.role === 'service_admin';
+}
+
+// Require authentication (redirect to login if not authenticated)
+function requireAuth() {
+  if (!isAuthenticated()) {
+    console.log('User not authenticated, redirecting to login');
+    window.location.href = '/';
+    return false;
+  }
+  return true;
+}
+
+// Initialize auth on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPath = window.location.pathname;
+  console.log('Current path:', currentPath);
+  
+  // On login page
+  if (currentPath === '/' || currentPath === '/index.html') {
+    console.log('On login page, checking for existing session...');
+    checkExistingSession();
+    
+    // Attach login form handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      console.log('Login form found, attaching handler');
+      loginForm.addEventListener('submit', handleLogin);
     }
+  } else {
+    // On protected pages, check if user is authenticated
+    console.log('On protected page, checking authentication...');
+    
+    // Only require auth on services and chat pages
+    if (currentPath.includes('services.html') || currentPath.includes('chat.html')) {
+      if (!isAuthenticated()) {
+        console.log('Not authenticated, redirecting to login');
+        window.location.href = '/';
+        return;
+      } else {
+        console.log('User authenticated:', getCurrentUser());
+      }
+    }
+  }
+  
+  // Attach logout handlers if they exist
+  const logoutButtons = document.querySelectorAll('.logout-btn, #logoutBtn, [data-action="logout"]');
+  if (logoutButtons.length > 0) {
+    console.log(`Found ${logoutButtons.length} logout button(s)`);
+    logoutButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleLogout();
+      });
+    });
+  }
+  
+  // Display user info if element exists
+  const userNameElement = document.getElementById('userName');
+  if (userNameElement) {
+    const user = getCurrentUser();
+    if (user) {
+      userNameElement.textContent = user.full_name || user.email || user.student_id;
+    }
+  }
+  
+  // Show/hide admin features based on role
+  if (isServiceAdmin()) {
+    const adminElements = document.querySelectorAll('.admin-only');
+    adminElements.forEach(el => el.style.display = 'block');
+  }
 });
+
+// Export functions for use in other scripts
+window.CampusAidAuth = {
+  getCurrentUser,
+  isAuthenticated,
+  isServiceAdmin,
+  requireAuth,
+  handleLogout,
+  showError,
+  showSuccess
+};

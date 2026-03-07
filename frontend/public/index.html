@@ -2,61 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>CampusAid - Student Support Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobot - Welcome</title>
+    
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/welcome.css">
 </head>
 <body>
     <div class="container">
         <div class="welcome-card">
+            
             <div class="logo-section">
-                <div class="logo">🤖</div>
-                <h1>Cobot</h1>
-                <p class="subtitle">AI-Powered Academic Collaboration Platform</p>
+                <div class="logo">🎓</div>
+                <h1>CampusAid</h1>
+                <p class="subtitle">
+                    Centralized Intelligent Platform for Student Support Services
+                </p>
             </div>
 
             <form id="loginForm" class="login-form">
+                
                 <div class="form-group">
-                    <label for="courseCode">Course Code</label>
+                    <label for="email">Ashesi Email</label>
                     <input 
-                        type="text" 
-                        id="courseCode" 
-                        name="courseCode"
-                        placeholder="e.g., CS101"
+                        type="email" 
+                        id="email" 
+                        name="email"
+                        placeholder="e.g., student@ashesi.edu.gh"
                         required
                         autocomplete="off"
                     >
                 </div>
 
-                <div class="form-group">
-                    <label for="studentId">Student ID</label>
+                <!-- <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div> -->
+
+                <div class="form-group"> 
+                    <label for="studentId">Student ID</label> 
                     <input 
                         type="text" 
                         id="studentId" 
-                        name="studentId"
-                        placeholder="e.g., STU001"
-                        required
-                        autocomplete="off"
-                    >
+                        name="studentId" 
+                        placeholder="e.g., STU001" 
+                        required autocomplete="off" 
+                    > 
                 </div>
 
                 <div id="errorMessage" class="error-message" style="display: none;"></div>
                 <div id="successMessage" class="success-message" style="display: none;"></div>
 
                 <button type="submit" id="loginBtn" class="btn-primary">
-                    <span id="loginBtnText">Enter Chat</span>
+                    <span id="loginBtnText">Sign In</span>
                     <span id="loginBtnLoader" class="loader" style="display: none;"></span>
                 </button>
             </form>
 
             <div class="help-text">
-                <p>Don't know your details? Contact your course instructor.</p>
+                <p>Access Career Services, Academic Advising, and ODIP in one place.</p>
+                <p class="small-text">
+                    For login issues, contact IT Support at Ashesi University.
+                </p>
             </div>
         </div>
 
         <footer class="footer">
-            <p>&copy; 2025 Cobot - Ashesi University Capstone Project</p>
+            <p>&copy; 2026 CampusAid - Ashesi University Capstone Project</p>
             <p class="small-text">Developed by Isabella Tsikata</p>
         </footer>
     </div>

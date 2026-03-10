@@ -52,7 +52,9 @@ class DocumentService {
         extractedText = await this.extractTextFromPDF(filePath);
       } else if (
         mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        fileExt === '.docx'
+        mimeType === 'application/msword' ||
+        fileExt === '.docx' ||
+        fileExt === '.doc'
       ) {
         console.log('   → Extracting from DOCX...');
         extractedText = await this.extractTextFromDOCX(filePath);
@@ -64,6 +66,14 @@ class DocumentService {
       ) {
         console.log('   → Extracting from Excel...');
         extractedText = await this.extractTextFromExcel(filePath);
+      } else if (
+        mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        mimeType === 'application/vnd.ms-powerpoint' ||
+        fileExt === '.pptx' ||
+        fileExt === '.ppt'
+      ) {
+        console.log('   → Extracting from PowerPoint...');
+        extractedText = await this.extractTextFromPPTX(filePath);
       } else if (mimeType === 'text/plain' || fileExt === '.txt') {
         console.log('   → Reading text file...');
         extractedText = await fs.readFile(filePath, 'utf-8');
@@ -122,32 +132,88 @@ class DocumentService {
       return savedFile;
       
     } catch (error) {
-      console.error('Error uploading document:', error);
+      console.error('❌ Error uploading document:', error.message);
+      console.error('Stack trace:', error.stack);
+      console.error('File details:', {
+        name: file?.originalname,
+        size: file?.size,
+        type: file?.mimetype
+      });
       throw error;
     }
   }
 
   /**
-   * Extract text from PDF
+   * Extract text from PDF using pdf2json
    * @param {string} filePath - Path to PDF file
    * @returns {Promise<string>} - Extracted text
    */
   static async extractTextFromPDF(filePath) {
     try {
-      const dataBuffer = await fs.readFile(filePath);
-      
-      // pdf-parse exports a function directly; require it and verify
-      const pdfParse = require('pdf-parse');
-      if (typeof pdfParse !== 'function') {
-        console.error('pdf-parse import is not a function:', pdfParse);
-        return '';
+      // Try pdf2json first (more reliable)
+      let PDFParser;
+      try {
+        PDFParser = require('pdf2json');
+      } catch (err) {
+        console.warn('⚠️ pdf2json not installed, trying pdf-parse...');
+        // Fallback to pdf-parse
+        try {
+          const pdfParse = require('pdf-parse');
+          const dataBuffer = await fs.readFile(filePath);
+          const data = await pdfParse(dataBuffer);
+          console.log(`✓ PDF parsed with pdf-parse: ${data.numpages} pages`);
+          return data.text || '';
+        } catch (parseErr) {
+          console.error('❌ Both pdf2json and pdf-parse failed');
+          return 'PDF file uploaded (install pdf2json or pdf-parse for text extraction)';
+        }
       }
+
+      // Use pdf2json
+      return new Promise((resolve, reject) => {
+        const pdfParser = new PDFParser();
+        
+        pdfParser.on('pdfParser_dataError', errData => {
+          console.error('PDF parse error:', errData.parserError);
+          resolve('PDF file (extraction failed)');
+        });
+        
+        pdfParser.on('pdfParser_dataReady', pdfData => {
+          try {
+            // Extract text from all pages
+            let fullText = '';
+            
+            if (pdfData.Pages) {
+              pdfData.Pages.forEach((page, pageIndex) => {
+                fullText += `\n--- Page ${pageIndex + 1} ---\n`;
+                
+                if (page.Texts) {
+                  page.Texts.forEach(text => {
+                    if (text.R && text.R[0] && text.R[0].T) {
+                      // Decode URI component (pdf2json encodes special chars)
+                      const decodedText = decodeURIComponent(text.R[0].T);
+                      fullText += decodedText + ' ';
+                    }
+                  });
+                }
+                fullText += '\n';
+              });
+            }
+            
+            console.log(`✓ PDF parsed with pdf2json: ${pdfData.Pages?.length || 0} pages`);
+            resolve(fullText.trim());
+          } catch (err) {
+            console.error('Error processing PDF data:', err);
+            resolve('PDF file (data processing failed)');
+          }
+        });
+        
+        pdfParser.loadPDF(filePath);
+      });
       
-      const data = await pdfParse(dataBuffer);
-      return (data && data.text) ? data.text : '';
     } catch (error) {
-      console.error('Error extracting PDF text:', error);
-      return '';
+      console.error('PDF extraction error:', error.message);
+      return 'PDF file uploaded (text extraction unavailable)';
     }
   }
 
@@ -190,6 +256,56 @@ class DocumentService {
     } catch (error) {
       console.error('Error extracting Excel text:', error);
       return '';
+    }
+  }
+
+  /**
+   * Extract text from PowerPoint (.pptx, .ppt)
+   * @param {string} filePath - Path to PowerPoint file
+   * @returns {Promise<string>} - Extracted text
+   */
+  static async extractTextFromPPTX(filePath) {
+    try {
+      // Check if adm-zip is available
+      let AdmZip;
+      try {
+        AdmZip = require('adm-zip');
+      } catch (err) {
+        console.warn('⚠️ adm-zip not installed. PowerPoint text extraction will be skipped.');
+        console.warn('   Install it with: npm install adm-zip');
+        return 'PowerPoint file uploaded (text extraction requires adm-zip package)';
+      }
+
+      const zip = new AdmZip(filePath);
+      const zipEntries = zip.getEntries();
+      
+      let allText = '';
+      let slideNumber = 0;
+      
+      // PPTX files contain slide XML files
+      zipEntries.forEach(entry => {
+        if (entry.entryName.match(/ppt\/slides\/slide\d+\.xml/)) {
+          slideNumber++;
+          const content = entry.getData().toString('utf8');
+          allText += `\n--- Slide ${slideNumber} ---\n`;
+          
+          // Extract text between <a:t> tags (text tags in PPTX XML)
+          const textMatches = content.match(/<a:t>([^<]+)<\/a:t>/g);
+          if (textMatches) {
+            textMatches.forEach(match => {
+              const text = match.replace(/<\/?a:t>/g, '');
+              allText += text + ' ';
+            });
+          }
+          allText += '\n';
+        }
+      });
+      
+      return allText.trim() || 'PowerPoint file (no text extracted)';
+    } catch (error) {
+      console.error('Error extracting PowerPoint text:', error.message);
+      console.error('Full error:', error);
+      return 'PowerPoint file (extraction failed)';
     }
   }
 
@@ -337,6 +453,31 @@ class DocumentService {
       return documents;
     } catch (error) {
       console.error('Error getting vector store documents:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all documents (for admin)
+   * @returns {Promise<Array>} - Array of all documents
+   */
+  static async getAllDocuments() {
+    try {
+      const documents = await query(
+        `SELECT 
+          f.*,
+          u.full_name as uploader_name,
+          s.service_name,
+          LENGTH(f.extracted_text) as text_length
+        FROM files f
+        LEFT JOIN users u ON f.uploaded_by = u.id
+        LEFT JOIN services s ON f.service_id = s.id
+        ORDER BY f.created_at DESC`
+      );
+      
+      return documents;
+    } catch (error) {
+      console.error('Error getting all documents:', error);
       return [];
     }
   }

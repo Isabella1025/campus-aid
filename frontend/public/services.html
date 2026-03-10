@@ -46,11 +46,6 @@
             gap: 15px;
         }
 
-        .user-name {
-            color: #333;
-            font-weight: 500;
-        }
-
         .logout-btn {
             background: #e74c3c;
             color: white;
@@ -75,130 +70,23 @@
 
         .service-card {
             background: white;
-            border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            border: 3px solid transparent;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
         }
 
         .service-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            border-color: #667eea;
-        }
-
-        .service-card.career {
-            border-left: 5px solid #3498db;
-        }
-
-        .service-card.advising {
-            border-left: 5px solid #e74c3c;
-        }
-
-        .service-card.odip {
-            border-left: 5px solid #27ae60;
-        }
-
-        .service-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .service-name {
-            font-size: 24px;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .service-description {
-            color: #7f8c8d;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .channels-list {
-            margin-top: 15px;
-        }
-
-        .channels-title {
-            font-size: 14px;
-            color: #95a5a6;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .channel-item {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-
-        .channel-item:hover {
-            background: #e9ecef;
-        }
-
-        .channel-name {
-            font-weight: 500;
-        }
-
-        .channel-badge {
-            background: #667eea;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-        }
-
-        .btn-admin {
-            width: 100%;
-            margin-top: 15px;
-            background: #9b59b6;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-admin:hover {
-            background: #8e44ad;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
         }
 
         .loading {
             text-align: center;
-            color: white;
-            font-size: 20px;
-            padding: 50px;
-        }
-
-        .error-message {
-            background: #e74c3c;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
+            padding: 60px;
+            background: white;
+            border-radius: 15px;
+            color: #7f8c8d;
+            font-size: 18px;
         }
 
         .empty-state {
@@ -213,6 +101,24 @@
             color: #34495e;
             margin-bottom: 10px;
         }
+
+        .action-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -221,13 +127,10 @@
         <div class="header">
             <h1>🎓 CampusAid - Student Services</h1>
             <div class="user-info">
-                <span class="user-name" id="userName">Loading...</span>
+                <div id="userInfoDisplay"></div>
                 <button class="logout-btn" id="logoutBtn">Logout</button>
             </div>
         </div>
-
-        <!-- Error Message -->
-        <div id="errorMessage" class="error-message"></div>
 
         <!-- Loading State -->
         <div id="loadingState" class="loading">
@@ -235,25 +138,22 @@
         </div>
 
         <!-- Services Grid -->
-        <div id="servicesGrid" class="services-grid" style="display: none;">
-            <!-- Services will be loaded here dynamically -->
-        </div>
+        <div id="servicesGrid" class="services-grid" style="display: none;"></div>
 
         <!-- Empty State -->
         <div id="emptyState" class="empty-state" style="display: none;">
             <h2>No Services Available</h2>
-            <p>Please contact your administrator to set up services.</p>
+            <p>Please contact your administrator.</p>
         </div>
     </div>
 
     <script>
         const API_BASE = 'http://localhost:3000/api';
 
-        // Service icons and colors
         const serviceConfig = {
-            'CAREER': { icon: '💼', class: 'career', color: '#3498db' },
-            'ADVISING': { icon: '📚', class: 'advising', color: '#e74c3c' },
-            'ODIP': { icon: '🌍', class: 'odip', color: '#27ae60' }
+            'CAREER': { icon: '💼', color: '#3498db' },
+            'ADVISING': { icon: '📚', color: '#e74c3c' },
+            'ODIP': { icon: '🌍', color: '#27ae60' }
         };
 
         // Check authentication
@@ -266,15 +166,50 @@
             return JSON.parse(user);
         }
 
-        // Load services and channels
+        // Display user info with role-based quick links
+        function displayUserInfo(user) {
+            const userInfoDiv = document.getElementById('userInfoDisplay');
+            
+            let quickLinks = '';
+            
+            if (user.role === 'service_admin') {
+                quickLinks = `
+                    <div style="margin-top: 8px;">
+                        <a href="/staff-approvals.html" style="
+                            display: inline-block;
+                            padding: 6px 14px;
+                            background: #667eea;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 6px;
+                            font-size: 13px;
+                            font-weight: 600;
+                            margin-right: 8px;
+                        ">👥 Staff Approvals</a>
+                    </div>
+                `;
+            }
+            
+            userInfoDiv.innerHTML = `
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; color: #2c3e50; font-size: 15px;">
+                        ${user.full_name || user.email || user.student_id}
+                    </div>
+                    <div style="font-size: 13px; color: #7f8c8d; text-transform: capitalize;">
+                        ${user.role || 'student'}
+                    </div>
+                    ${quickLinks}
+                </div>
+            `;
+        }
+
+        // Load services
         async function loadServices() {
             try {
                 const user = checkAuth();
                 if (!user) return;
 
-                // Display user name
-                document.getElementById('userName').textContent = 
-                    user.full_name || user.email || user.student_id;
+                displayUserInfo(user);
 
                 // Fetch services
                 const servicesResponse = await fetch(`${API_BASE}/services`, {
@@ -286,7 +221,18 @@
                 }
 
                 const servicesData = await servicesResponse.json();
-                const services = servicesData.data || [];
+                let services = servicesData.data || [];
+
+                // FILTER BASED ON ROLE
+                if (user.role === 'staff') {
+                    // Staff only see their assigned service
+                    if (user.assigned_service_id) {
+                        services = services.filter(s => s.id === user.assigned_service_id);
+                    } else {
+                        services = [];
+                    }
+                }
+                // Service admin and students see all services
 
                 // Fetch channels
                 const channelsResponse = await fetch(`${API_BASE}/channels`, {
@@ -305,11 +251,14 @@
                     channelsByService[channel.service_id].push(channel);
                 });
 
-                // Hide loading
                 document.getElementById('loadingState').style.display = 'none';
 
                 if (services.length === 0) {
                     document.getElementById('emptyState').style.display = 'block';
+                    if (user.role === 'staff') {
+                        document.querySelector('.empty-state h2').textContent = 'No Service Assigned';
+                        document.querySelector('.empty-state p').textContent = 'Contact your administrator to assign you to a service.';
+                    }
                     return;
                 }
 
@@ -319,55 +268,108 @@
 
                 services.forEach(service => {
                     const config = serviceConfig[service.service_code] || 
-                                   { icon: '📋', class: 'default', color: '#95a5a6' };
+                                   { icon: '📋', color: '#95a5a6' };
                     
                     const serviceChannels = channelsByService[service.id] || [];
                     
                     const card = document.createElement('div');
-                    card.className = `service-card ${config.class}`;
+                    card.className = 'service-card';
+                    card.style.borderLeft = `5px solid ${config.color}`;
                     
-                    // Don't auto-navigate on card click
-                    card.onclick = null;
-
+                    // Build action buttons based on role
+                    let actionButtons = '';
+                    
+                    if (user.role === 'staff' || user.role === 'service_admin') {
+                        // STAFF VIEW: Admin buttons only
+                        actionButtons = `
+                            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+                                <a href="/admin.html?service=${service.id}" class="action-btn" style="
+                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    color: white;
+                                ">⚙️ Service Admin Dashboard</a>
+                                
+                                <a href="/staff-dashboard.html" class="action-btn" style="
+                                    background: #28a745;
+                                    color: white;
+                                ">📅 Manage Appointments</a>
+                            </div>
+                        `;
+                    } else {
+                        // STUDENT VIEW: Book appointment button
+                        actionButtons = `
+                            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+                                <a href="/appointments.html?service=${service.id}" class="action-btn" style="
+                                    background: #28a745;
+                                    color: white;
+                                ">📅 Book Appointment</a>
+                            </div>
+                        `;
+                    }
+                    
                     card.innerHTML = `
-                        <div class="service-icon">${config.icon}</div>
-                        <div class="service-name">${service.service_name}</div>
-                        <div class="service-description">${service.service_description || 'Access support and guidance'}</div>
+                        <div style="font-size: 48px; margin-bottom: 15px; text-align: center;">
+                            ${config.icon}
+                        </div>
+                        <h2 style="color: #2c3e50; margin-bottom: 10px; font-size: 22px; text-align: center;">
+                            ${service.service_name}
+                        </h2>
+                        <p style="color: #7f8c8d; margin-bottom: 20px; line-height: 1.6; text-align: center;">
+                            ${service.service_description || 'No description available'}
+                        </p>
+                        
                         ${serviceChannels.length > 0 ? `
-                            <div class="channels-list">
-                                <div class="channels-title">Available Channels:</div>
+                            <div>
+                                <h3 style="color: #34495e; font-size: 16px; margin-bottom: 12px;">
+                                    Available Channels:
+                                </h3>
                                 ${serviceChannels.map(channel => `
-                                    <div class="channel-item" onclick="window.location.href='/chat.html?channel=${channel.id}'">
-                                        <span class="channel-name">${channel.channel_name}</span>
-                                        <span class="channel-badge">Chat</span>
+                                    <div style="
+                                        display: flex;
+                                        justify-content: space-between;
+                                        align-items: center;
+                                        padding: 10px;
+                                        background: #f8f9fa;
+                                        border-radius: 6px;
+                                        margin-bottom: 8px;
+                                    ">
+                                        <span style="color: #2c3e50; font-weight: 500;">
+                                            ${channel.channel_name}
+                                        </span>
+                                        <a href="/chat.html?channel=${channel.id}" style="
+                                            background: ${config.color};
+                                            color: white;
+                                            padding: 6px 16px;
+                                            border-radius: 20px;
+                                            text-decoration: none;
+                                            font-size: 13px;
+                                            font-weight: 600;
+                                        ">Chat</a>
                                     </div>
                                 `).join('')}
                             </div>
-                        ` : '<p style="color: #95a5a6; font-size: 13px; margin-top: 10px;">No channels available</p>'}
+                        ` : `
+                            <p style="color: #95a5a6; font-style: italic; font-size: 14px; text-align: center;">
+                                No channels available yet
+                            </p>
+                        `}
                         
-                        ${user.role === 'lecturer' || user.role === 'admin' || user.role === 'service_admin' ? `
-                            <button class="btn-admin" onclick="window.location.href='/admin.html?service=${service.id}'">
-                                ⚙️ Manage Documents & Bots
-                            </button>
-                        ` : ''}
+                        ${actionButtons}
                     `;
-
+                    
                     servicesGrid.appendChild(card);
                 });
 
             } catch (error) {
                 console.error('Error loading services:', error);
                 document.getElementById('loadingState').style.display = 'none';
-                const errorMsg = document.getElementById('errorMessage');
-                errorMsg.textContent = 'Failed to load services. Please try refreshing the page.';
-                errorMsg.style.display = 'block';
+                alert('Failed to load services. Please try again.');
             }
         }
 
         // Logout
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
-                await fetch(`${API_BASE}/session/logout`, {
+                await fetch(`${API_BASE}/auth/logout`, {
                     method: 'POST',
                     credentials: 'include'
                 });

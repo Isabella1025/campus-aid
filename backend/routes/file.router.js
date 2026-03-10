@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const { query } = require('../config/database');
 const DocumentService = require('../services/DocumentService');
 const VectorStoreService = require('../services/VectorStoreService');
 
@@ -14,25 +15,97 @@ const upload = multer({
     const allowedTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.ms-powerpoint',
       'text/plain'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF, DOCX, XLSX, XLS, and TXT files are allowed.'));
+      cb(new Error('Invalid file type. Only PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, and TXT files are allowed.'));
     }
   }
 });
 
 /**
  * @route   POST /api/files/upload
- * @desc    Upload a document
+ * @desc    Upload one or multiple documents (Admin dashboard)
  * @access  Admin only
  */
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', upload.array('files', 10), async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No files uploaded'
+      });
+    }
+
+    const { service_id } = req.body;
+
+    if (!service_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Service ID is required'
+      });
+    }
+
+    // Upload and process all documents
+    const uploadResults = [];
+    const errors = [];
+
+    for (const file of req.files) {
+      try {
+        const document = await DocumentService.uploadDocument(
+          file,
+          parseInt(service_id),
+          req.session.user.id
+        );
+        uploadResults.push(document);
+      } catch (error) {
+        console.error(`Error uploading ${file.originalname}:`, error);
+        errors.push({
+          filename: file.originalname,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `${uploadResults.length} file(s) uploaded successfully`,
+      data: {
+        uploaded: uploadResults,
+        failed: errors
+      }
+    });
+
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to upload documents'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/files/upload-chat
+ * @desc    Upload single file in chat
+ * @access  Authenticated users
+ */
+router.post('/upload-chat', upload.single('file'), async (req, res) => {
   try {
     if (!req.session.user) {
       return res.status(401).json({
@@ -48,33 +121,89 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       });
     }
 
-    const { service_id } = req.body;
+    const { channel_id } = req.body;
 
-    if (!service_id) {
+    if (!channel_id) {
       return res.status(400).json({
         success: false,
-        error: 'Service ID is required'
+        error: 'Channel ID is required'
       });
     }
+
+    // Get service_id from channel
+    const channel = await query(
+      'SELECT service_id FROM service_channels WHERE id = ?',
+      [parseInt(channel_id)]
+    );
+
+    if (!channel || channel.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Channel not found'
+      });
+    }
+
+    const serviceId = channel[0].service_id;
 
     // Upload and process document
     const document = await DocumentService.uploadDocument(
       req.file,
-      parseInt(service_id),
+      serviceId,
       req.session.user.id
     );
 
     res.json({
       success: true,
-      message: 'Document uploaded successfully',
+      message: 'File uploaded successfully',
       data: document
     });
 
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error uploading chat file:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to upload document'
+      error: error.message || 'Failed to upload file'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/files
+ * @desc    Get all files (optionally filter by service_id)
+ * @access  Private
+ */
+router.get('/', async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { service_id } = req.query;
+
+    if (service_id) {
+      // Get files for specific service
+      const documents = await DocumentService.getServiceDocuments(parseInt(service_id));
+      return res.json({
+        success: true,
+        data: documents
+      });
+    }
+
+    // Get all files (for admin)
+    const documents = await DocumentService.getAllDocuments();
+    res.json({
+      success: true,
+      data: documents
+    });
+
+  } catch (error) {
+    console.error('Error getting files:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get files'
     });
   }
 });

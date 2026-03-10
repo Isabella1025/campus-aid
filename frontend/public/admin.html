@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CampusAid - Service Admin Dashboard</title>
+    <title>Service Admin Dashboard - CampusAid</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <style>
         * {
             margin: 0;
@@ -14,8 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #f5f7fa;
             padding: 20px;
         }
 
@@ -26,10 +24,10 @@
 
         .header {
             background: white;
-            padding: 25px 35px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 24px 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -37,278 +35,295 @@
 
         .header h1 {
             color: #2c3e50;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            font-size: 26px;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .user-badge {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
+        .service-info {
+            color: #7f8c8d;
             font-size: 14px;
-            font-weight: 500;
+            margin-top: 4px;
         }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
+        .back-btn {
             background: #95a5a6;
             color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
         }
 
-        .btn-secondary:hover {
+        .back-btn:hover {
             background: #7f8c8d;
         }
 
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #229954;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-
-        .card h2 {
-            color: #2c3e50;
-            font-size: 22px;
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        .stat-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        .stat-card {
+            background: white;
+            padding: 24px;
             border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             text-align: center;
         }
 
-        .stat-number {
+        .stat-value {
             font-size: 36px;
             font-weight: bold;
-            margin-bottom: 5px;
+            color: #667eea;
+            margin: 8px 0;
         }
 
         .stat-label {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-
-        .upload-zone {
-            border: 3px dashed #bdc3c7;
-            border-radius: 15px;
-            padding: 50px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 25px;
-            background: #f8f9fa;
-        }
-
-        .upload-zone:hover {
-            border-color: #667eea;
-            background: #f0f3ff;
-        }
-
-        .upload-zone.dragover {
-            border-color: #667eea;
-            background: #e8ebff;
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 64px;
-            margin-bottom: 15px;
-            color: #95a5a6;
-        }
-
-        .upload-text {
-            font-size: 18px;
-            color: #2c3e50;
-            margin-bottom: 10px;
+            color: #7f8c8d;
+            font-size: 14px;
             font-weight: 600;
         }
 
-        .upload-subtext {
-            font-size: 14px;
-            color: #7f8c8d;
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .file-input {
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: #f8f9fa;
+            color: #7f8c8d;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
             display: none;
         }
 
-        .documents-list {
-            margin-top: 25px;
+        .tab-content.active {
+            display: block;
         }
 
-        .document-item {
-            background: #f8f9fa;
-            border: 1px solid #ecf0f1;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
+        .content-section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone.dragover {
+            background: #f0f3ff;
+            border-color: #4c5fd5;
+        }
+
+        .drop-zone:hover {
+            background: #f8f9ff;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 12px;
         }
 
-        .document-item:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transform: translateX(5px);
-        }
-
-        .document-info {
+        .file-info {
             flex: 1;
         }
 
-        .document-name {
-            font-size: 16px;
+        .file-name {
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 4px;
         }
 
-        .document-meta {
+        .file-meta {
             font-size: 13px;
             color: #7f8c8d;
-            display: flex;
-            gap: 20px;
         }
 
-        .document-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+        .btn {
+            padding: 10px 20px;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
-            display: flex;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             align-items: center;
             justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .bot-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border-left: 4px solid #667eea;
+        }
+
+        .bot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .bot-name {
             font-size: 18px;
-            transition: all 0.3s;
+            font-weight: 700;
+            color: #2c3e50;
         }
 
-        .icon-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .icon-btn.embeddings {
-            background: #3498db;
-            color: white;
-        }
-
-        .icon-btn.delete {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .badge {
-            display: inline-block;
+        .bot-status {
             padding: 4px 12px;
             border-radius: 12px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            text-transform: uppercase;
         }
 
-        .badge.success {
+        .status-active {
             background: #d4edda;
             color: #155724;
         }
 
-        .badge.warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge.info {
-            background: #d1ecf1;
-            color: #0c5460;
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 30px;
-            color: #95a5a6;
-        }
-
-        .empty-state h3 {
+            padding: 40px;
             color: #7f8c8d;
-            margin-bottom: 10px;
         }
 
         .loading {
@@ -317,421 +332,391 @@
             color: #7f8c8d;
         }
 
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 20px 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 1000;
-            max-width: 400px;
-            animation: slideIn 0.3s;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .notification.show {
-            display: block;
-        }
-
-        .notification.success {
-            border-left: 5px solid #27ae60;
-        }
-
-        .notification.error {
-            border-left: 5px solid #e74c3c;
-        }
-
-        .notification.info {
-            border-left: 5px solid #3498db;
-        }
-
         .progress-bar {
             width: 100%;
             height: 6px;
             background: #ecf0f1;
             border-radius: 3px;
             overflow: hidden;
-            margin-top: 15px;
-            display: none;
+            margin-top: 8px;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             transition: width 0.3s;
-        }
-
-        /* Responsive */
-        @media (max-width: 968px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <h1>
-                <span>📚</span>
-                Service Admin Dashboard
-            </h1>
-            <div class="header-actions">
-                <div class="user-badge" id="serviceName">Loading...</div>
-                <a href="/services.html" class="btn btn-secondary">← Back to Services</a>
+            <div>
+                <h1 id="pageTitle">Service Admin Dashboard</h1>
+                <div class="service-info" id="serviceInfo">Loading...</div>
+            </div>
+            <a href="/services.html" class="back-btn">← Back to Services</a>
+        </div>
+
+        <div id="accessDenied" class="alert alert-warning" style="display: none;">
+            <strong>Access Restricted</strong><br>
+            You don't have permission to access this service's admin panel.
+        </div>
+
+        <div id="dashboardContent">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Documents</div>
+                    <div class="stat-value" id="totalDocs">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Bots</div>
+                    <div class="stat-value" id="totalBots">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Channels</div>
+                    <div class="stat-value" id="totalChannels">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pending Appointments</div>
+                    <div class="stat-value" id="pendingAppts">0</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('documents')">📁 Documents</button>
+                <button class="tab-btn" onclick="switchTab('bots')">🤖 Bots</button>
+                <button class="tab-btn" onclick="switchTab('channels')">💬 Channels</button>
+            </div>
+
+            <!-- Documents Tab -->
+            <div id="documentsTab" class="tab-content active">
+                <div class="content-section">
+                    <h2 style="margin-bottom: 20px;">Upload Documents</h2>
+                    
+                    <div class="drop-zone" id="dropZone">
+                        <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xlsx,.xls" multiple>
+                        <p style="font-size: 48px; margin-bottom: 10px;">📄</p>
+                        <p style="color: #667eea; font-weight: 600; margin-bottom: 8px;">Drop files here or click to browse</p>
+                        <p style="color: #7f8c8d; font-size: 14px;">Supports: PDF, Word, Excel, PowerPoint, Text</p>
+                    </div>
+
+                    <div id="selectedFiles" style="margin-top: 20px;"></div>
+                    
+                    <button id="uploadBtn" class="btn btn-primary" style="margin-top: 16px; display: none;" onclick="uploadFiles()">
+                        Upload Files
+                    </button>
+                </div>
+
+                <div class="content-section">
+                    <h2 style="margin-bottom: 20px;">Uploaded Documents</h2>
+                    <div id="filesList" class="file-list"></div>
+                </div>
+            </div>
+
+            <!-- Bots Tab -->
+            <div id="botsTab" class="tab-content">
+                <div class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Service Bots</h2>
+                        <button class="btn btn-success" onclick="openCreateBotModal()">+ Create Bot</button>
+                    </div>
+                    <div id="botsList"></div>
+                </div>
+            </div>
+
+            <!-- Channels Tab -->
+            <div id="channelsTab" class="tab-content">
+                <div class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Service Channels</h2>
+                        <button class="btn btn-success" onclick="openCreateChannelModal()">+ Create Channel</button>
+                    </div>
+                    <div id="channelsList"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Left: Stats & Upload -->
-            <div>
-                <!-- Stats Card -->
-                <div class="card">
-                    <h2>📊 Statistics</h2>
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <div class="stat-number" id="totalDocs">0</div>
-                            <div class="stat-label">Documents</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-number" id="totalEmbeddings">0</div>
-                            <div class="stat-label">Embeddings</div>
-                        </div>
+        <!-- Create Bot Modal -->
+        <div id="createBotModal" class="modal">
+            <div class="modal-content">
+                <h2 style="margin-bottom: 20px;">Create Service Bot</h2>
+                <form onsubmit="createBot(event)">
+                    <div class="form-group">
+                        <label>Bot Name *</label>
+                        <input type="text" id="botName" required placeholder="e.g., Career Advisor Bot">
                     </div>
-                </div>
-
-                <!-- Upload Card -->
-                <div class="card" style="margin-top: 25px;">
-                    <h2>📤 Upload Document</h2>
-                    
-                    <div class="upload-zone" id="uploadZone">
-                        <div class="upload-icon">📄</div>
-                        <div class="upload-text">Drop files here or click to browse</div>
-                        <div class="upload-subtext">PDF, DOCX, XLSX, TXT • Max 10MB</div>
+                    <div class="form-group">
+                        <label>Instructions *</label>
+                        <textarea id="botInstructions" rows="5" required placeholder="Describe how the bot should behave..."></textarea>
                     </div>
-
-                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.xlsx,.xls,.txt" multiple>
-
-                    <div class="progress-bar" id="progressBar">
-                        <div class="progress-fill" id="progressFill"></div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn" style="background: #6c757d; color: white;" onclick="closeModal('createBotModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Bot</button>
                     </div>
-
-                    <button class="btn btn-primary" style="width: 100%;" id="uploadBtn">
-                        <span>⬆️</span> Upload & Generate Embeddings
-                    </button>
-                </div>
+                </form>
             </div>
+        </div>
 
-            <!-- Right: Documents List -->
-            <div class="card">
-                <h2>📁 Uploaded Documents</h2>
-                
-                <div id="documentsList" class="documents-list">
-                    <div class="loading">Loading documents</div>
-                </div>
+        <!-- Create Channel Modal -->
+        <div id="createChannelModal" class="modal">
+            <div class="modal-content">
+                <h2 style="margin-bottom: 20px;">Create Channel</h2>
+                <form onsubmit="createChannel(event)">
+                    <div class="form-group">
+                        <label>Channel Name *</label>
+                        <input type="text" id="channelName" required placeholder="e.g., General Discussion">
+                    </div>
+                    <div class="form-group">
+                        <label>Assign Bot (Optional)</label>
+                        <select id="channelBotSelect">
+                            <option value="">No bot</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn" style="background: #6c757d; color: white;" onclick="closeModal('createChannelModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Channel</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Notification -->
-    <div id="notification" class="notification"></div>
-
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const API_BASE = 'http://localhost:3000/api';
-        let currentService = null;
+        let currentUser = null;
+        let currentServiceId = null;
         let selectedFiles = [];
 
-        // Check authentication
-        function checkAuth() {
-            const user = sessionStorage.getItem('user');
-            if (!user) {
-                window.location.href = '/';
-                return null;
-            }
-            return JSON.parse(user);
-        }
-
-        // Get service from URL
-        function getServiceId() {
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('service');
-        }
+            currentServiceId = parseInt(urlParams.get('service'));
 
-        // Load service info
+            if (!currentServiceId) {
+                alert('No service specified');
+                window.location.href = '/services.html';
+                return;
+            }
+
+            // Get current user
+            const userResponse = await fetch(`${API_BASE}/auth/current`, {
+                credentials: 'include'
+            });
+
+            if (!userResponse.ok) {
+                alert('Please log in');
+                window.location.href = '/';
+                return;
+            }
+
+            const userData = await userResponse.json();
+            currentUser = userData.data;
+
+            // Check permissions
+            if (currentUser.role === 'student') {
+                document.getElementById('accessDenied').style.display = 'block';
+                document.getElementById('dashboardContent').style.display = 'none';
+                return;
+            }
+
+            if (currentUser.role === 'staff' && currentUser.assigned_service_id !== currentServiceId) {
+                document.getElementById('accessDenied').style.display = 'block';
+                document.getElementById('dashboardContent').style.display = 'none';
+                return;
+            }
+
+            await loadServiceInfo();
+            await loadStats();
+            await loadFiles();
+            await loadBots();
+            await loadChannels();
+            setupDropZone();
+        });
+
         async function loadServiceInfo() {
             try {
-                const serviceId = getServiceId();
-                if (!serviceId) {
-                    alert('No service specified');
-                    window.location.href = '/services.html';
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE}/services/${serviceId}`, {
+                const response = await fetch(`${API_BASE}/services/${currentServiceId}`, {
                     credentials: 'include'
                 });
-
                 const data = await response.json();
-                currentService = data.data;
-
-                document.getElementById('serviceName').textContent = currentService.service_name;
-                
-                loadDocuments();
-                loadStats();
-
+                document.getElementById('pageTitle').textContent = `${data.data.service_name} - Admin`;
+                document.getElementById('serviceInfo').textContent = `Managing ${data.data.service_name} | Role: ${currentUser.role}`;
             } catch (error) {
-                console.error('Error loading service:', error);
-                showNotification('Failed to load service information', 'error');
+                console.error('Load service error:', error);
             }
         }
 
-        // Load documents
-        async function loadDocuments() {
+        async function loadStats() {
             try {
-                const response = await fetch(`${API_BASE}/files/service/${currentService.id}`, {
-                    credentials: 'include'
+                // Files
+                const filesRes = await fetch(`${API_BASE}/files?service_id=${currentServiceId}`, { credentials: 'include' });
+                if (filesRes.ok) {
+                    const filesData = await filesRes.json();
+                    document.getElementById('totalDocs').textContent = filesData.data?.length || 0;
+                }
+
+                // Bots
+                const botsRes = await fetch(`${API_BASE}/bots/service/${currentServiceId}`, { credentials: 'include' });
+                if (botsRes.ok) {
+                    const botsData = await botsRes.json();
+                    document.getElementById('totalBots').textContent = botsData.data?.filter(b => b.is_active).length || 0;
+                }
+
+                // Channels
+                const channelsRes = await fetch(`${API_BASE}/channels?service_id=${currentServiceId}`, { credentials: 'include' });
+                if (channelsRes.ok) {
+                    const channelsData = await channelsRes.json();
+                    document.getElementById('totalChannels').textContent = channelsData.data?.length || 0;
+                }
+
+                // Appointments
+                const apptsRes = await fetch(`${API_BASE}/appointments/my-assigned?status=pending`, { credentials: 'include' });
+                if (apptsRes.ok) {
+                    const apptsData = await apptsRes.json();
+                    document.getElementById('pendingAppts').textContent = apptsData.data?.length || 0;
+                }
+            } catch (error) {
+                console.error('Load stats error:', error);
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // File upload
+        function setupDropZone() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        }
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            displaySelectedFiles();
+        }
+
+        function displaySelectedFiles() {
+            const container = document.getElementById('selectedFiles');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '';
+                uploadBtn.style.display = 'none';
+                return;
+            }
+
+            uploadBtn.style.display = 'block';
+            container.innerHTML = selectedFiles.map((file, i) => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">📄 ${file.name}</div>
+                        <div class="file-meta">${(file.size / 1024).toFixed(2)} KB</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeFile(${i})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            displaySelectedFiles();
+        }
+
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append('files', file));
+            formData.append('service_id', currentServiceId);
+
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+
+            try {
+                const response = await fetch(`${API_BASE}/files/upload`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
                 });
 
                 const data = await response.json();
-                const documents = data.data || [];
+                if (data.success) {
+                    alert('Files uploaded successfully!');
+                    selectedFiles = [];
+                    displaySelectedFiles();
+                    await loadFiles();
+                    await loadStats();
+                } else {
+                    alert(data.error || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Upload Files';
+            }
+        }
 
-                const docsList = document.getElementById('documentsList');
+        async function loadFiles() {
+            try {
+                const response = await fetch(`${API_BASE}/files?service_id=${currentServiceId}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                const filesList = document.getElementById('filesList');
 
-                if (documents.length === 0) {
-                    docsList.innerHTML = `
-                        <div class="empty-state">
-                            <h3>No documents yet</h3>
-                            <p>Upload documents to train your service bot</p>
-                        </div>
-                    `;
+                if (!data.data || data.data.length === 0) {
+                    filesList.innerHTML = '<div class="empty-state">No documents uploaded yet</div>';
                     return;
                 }
 
-                docsList.innerHTML = documents.map(doc => `
-                    <div class="document-item">
-                        <div class="document-info">
-                            <div class="document-name">
-                                📄 ${doc.original_name}
-                                ${doc.text_length > 0 ? '<span class="badge success">✓ Indexed</span>' : '<span class="badge warning">⚠ Not Indexed</span>'}
-                            </div>
-                            <div class="document-meta">
-                                <span>📏 ${formatFileSize(doc.file_size)}</span>
-                                <span>📅 ${formatDate(doc.created_at)}</span>
-                                <span>👤 ${doc.uploader_name}</span>
-                            </div>
+                filesList.innerHTML = data.data.map(file => `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <div class="file-name">📄 ${file.original_name}</div>
+                            <div class="file-meta">Uploaded on ${new Date(file.created_at).toLocaleDateString()} • ${file.text_length || 0} characters extracted</div>
                         </div>
-                        <div class="document-actions">
-                            <button class="icon-btn embeddings" onclick="generateEmbeddings(${doc.id})" title="Generate Embeddings">
-                                🧠
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="font-size: 13px; padding: 8px 16px;" onclick="replaceFile(${file.id}, '${file.original_name.replace(/'/g, "\\'")}')">
+                                🔄 Replace
                             </button>
-                            <button class="icon-btn delete" onclick="deleteDocument(${doc.id})" title="Delete">
-                                🗑️
+                            <button class="btn btn-danger" style="font-size: 13px; padding: 8px 16px;" onclick="deleteFile(${file.id})">
+                                🗑️ Delete
                             </button>
                         </div>
                     </div>
                 `).join('');
-
             } catch (error) {
-                console.error('Error loading documents:', error);
-                document.getElementById('documentsList').innerHTML = `
-                    <div class="empty-state">
-                        <h3>Error loading documents</h3>
-                    </div>
-                `;
+                console.error('Load files error:', error);
             }
         }
 
-        // Load stats
-        async function loadStats() {
-            // For now, just count documents
-            // TODO: Add API endpoint for stats
-            const response = await fetch(`${API_BASE}/files/service/${currentService.id}`, {
-                credentials: 'include'
-            });
-            const data = await response.json();
-            const docs = data.data || [];
-            
-            document.getElementById('totalDocs').textContent = docs.length;
-            document.getElementById('totalEmbeddings').textContent = '...'; // Will update with real data
-        }
-
-        // Upload zone drag & drop
-        const uploadZone = document.getElementById('uploadZone');
-        const fileInput = document.getElementById('fileInput');
-
-        uploadZone.addEventListener('click', () => fileInput.click());
-
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
-
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            
-            const files = Array.from(e.dataTransfer.files);
-            handleFiles(files);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            handleFiles(files);
-        });
-
-        function handleFiles(files) {
-            selectedFiles = files.filter(file => {
-                const validTypes = ['.pdf', '.docx', '.xlsx', '.xls', '.txt'];
-                const ext = '.' + file.name.split('.').pop().toLowerCase();
-                return validTypes.includes(ext) && file.size <= 10 * 1024 * 1024;
-            });
-
-            if (selectedFiles.length > 0) {
-                uploadZone.querySelector('.upload-text').textContent = 
-                    `${selectedFiles.length} file(s) selected - Ready to upload!`;
-                uploadZone.style.borderColor = '#27ae60';
-                uploadZone.style.background = '#d4edda';
-            } else {
-                uploadZone.querySelector('.upload-text').textContent = 
-                    'Invalid files or files too large (max 10MB)';
-                uploadZone.style.borderColor = '#e74c3c';
-                uploadZone.style.background = '#f8d7da';
-            }
-        }
-
-        // Upload files
-        document.getElementById('uploadBtn').addEventListener('click', async () => {
-            if (selectedFiles.length === 0) {
-                showNotification('Please select files to upload', 'error');
-                return;
-            }
-
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
-            
-            progressBar.style.display = 'block';
-
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const file = selectedFiles[i];
-                
-                try {
-                    // Upload file
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('service_id', currentService.id);
-
-                    const uploadResponse = await fetch(`${API_BASE}/files/upload`, {
-                        method: 'POST',
-                        credentials: 'include',
-                        body: formData
-                    });
-
-                    const uploadData = await uploadResponse.json();
-
-                    if (uploadData.success) {
-                        const fileId = uploadData.data.id;
-                        
-                        // Auto-generate embeddings
-                        showNotification(`Generating embeddings for ${file.name}...`, 'info');
-                        
-                        const embeddingsResponse = await fetch(`${API_BASE}/files/${fileId}/embeddings`, {
-                            method: 'POST',
-                            credentials: 'include'
-                        });
-
-                        if (embeddingsResponse.ok) {
-                            showNotification(`✓ ${file.name} uploaded and indexed!`, 'success');
-                        }
-                    }
-
-                    // Update progress
-                    const progress = ((i + 1) / selectedFiles.length) * 100;
-                    progressFill.style.width = progress + '%';
-
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    showNotification(`Failed to upload ${file.name}`, 'error');
-                }
-            }
-
-            // Reset
-            selectedFiles = [];
-            fileInput.value = '';
-            uploadZone.querySelector('.upload-text').textContent = 'Drop files here or click to browse';
-            progressBar.style.display = 'none';
-            progressFill.style.width = '0%';
-
-            // Reload documents
-            loadDocuments();
-            loadStats();
-        });
-
-        // Generate embeddings for existing document
-        async function generateEmbeddings(fileId) {
-            showNotification('Generating embeddings...', 'info');
-            
-            try {
-                const response = await fetch(`${API_BASE}/files/${fileId}/embeddings`, {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showNotification(`✓ Generated ${data.data.embeddings_generated} embeddings!`, 'success');
-                    loadDocuments();
-                    loadStats();
-                } else {
-                    showNotification('Failed to generate embeddings', 'error');
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error generating embeddings', 'error');
-            }
-        }
-
-        // Delete document
-        async function deleteDocument(fileId) {
-            if (!confirm('Are you sure you want to delete this document? This will also remove its embeddings.')) {
-                return;
-            }
+        async function deleteFile(fileId) {
+            if (!confirm('Delete this file?')) return;
 
             try {
                 const response = await fetch(`${API_BASE}/files/${fileId}`, {
@@ -739,56 +724,342 @@
                     credentials: 'include'
                 });
 
-                const data = await response.json();
-
-                if (data.success) {
-                    showNotification('Document deleted successfully', 'success');
-                    loadDocuments();
-                    loadStats();
+                if (response.ok) {
+                    alert('File deleted');
+                    await loadFiles();
+                    await loadStats();
                 } else {
-                    showNotification('Failed to delete document', 'error');
+                    alert('Failed to delete file');
                 }
-
             } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error deleting document', 'error');
+                console.error('Delete error:', error);
+                alert('Failed to delete file');
             }
         }
 
-        // Show notification
-        function showNotification(message, type = 'info') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
+        // Replace file function
+        let replacingFileId = null;
+        let replacingFileName = '';
 
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 4000);
+        async function replaceFile(fileId, fileName) {
+            replacingFileId = fileId;
+            replacingFileName = fileName;
+
+            if (confirm(`Replace "${fileName}"?\n\nThis will:\n1. Delete the current file\n2. Upload a new file\n3. Bot will immediately use the new file`)) {
+                // Create hidden file input
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.pdf,.doc,.docx,.txt,.ppt,.pptx,.xlsx,.xls';
+                
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('files', file);
+                    formData.append('service_id', currentServiceId);
+                    formData.append('replace_file_id', replacingFileId);
+
+                    try {
+                        // Show progress
+                        const progressDiv = document.createElement('div');
+                        progressDiv.innerHTML = `
+                            <div style="
+                                position: fixed;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: white;
+                                padding: 30px;
+                                border-radius: 12px;
+                                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                                z-index: 10000;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
+                                <div style="font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 8px;">
+                                    Replacing File...
+                                </div>
+                                <div style="color: #7f8c8d;">
+                                    Deleting "${replacingFileName}"<br>
+                                    Uploading "${file.name}"
+                                </div>
+                                <div class="progress-bar" style="margin-top: 16px;">
+                                    <div class="progress-fill" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(progressDiv);
+
+                        // First delete old file
+                        const deleteResponse = await fetch(`${API_BASE}/files/${replacingFileId}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        });
+
+                        if (!deleteResponse.ok) {
+                            throw new Error('Failed to delete old file');
+                        }
+
+                        // Update progress
+                        progressDiv.querySelector('.progress-fill').style.width = '75%';
+
+                        // Then upload new file
+                        const uploadResponse = await fetch(`${API_BASE}/files/upload`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: formData
+                        });
+
+                        const data = await uploadResponse.json();
+
+                        // Update progress
+                        progressDiv.querySelector('.progress-fill').style.width = '100%';
+
+                        // Remove progress div
+                        setTimeout(() => {
+                            document.body.removeChild(progressDiv);
+                            
+                            if (data.success) {
+                                alert(`✅ File replaced successfully!\n\n"${replacingFileName}" → "${file.name}"\n\nBot will now use the new file.`);
+                                loadFiles();
+                                loadStats();
+                            } else {
+                                alert('❌ Upload failed: ' + (data.error || 'Unknown error'));
+                            }
+                        }, 500);
+
+                    } catch (error) {
+                        console.error('Replace error:', error);
+                        alert('❌ Failed to replace file: ' + error.message);
+                        // Reload to show current state
+                        await loadFiles();
+                    }
+                };
+
+                input.click();
+            }
         }
 
-        // Format file size
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        async function loadBots() {
+            try {
+                const response = await fetch(`${API_BASE}/bots/service/${currentServiceId}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                const botsList = document.getElementById('botsList');
+
+                if (!data.data || data.data.length === 0) {
+                    botsList.innerHTML = '<div class="empty-state">No bots created yet. Click "Create Bot" to get started!</div>';
+                    return;
+                }
+
+                botsList.innerHTML = data.data.map(bot => `
+                    <div class="bot-card">
+                        <div class="bot-header">
+                            <div class="bot-name">${bot.bot_name}</div>
+                            <span class="bot-status ${bot.is_active ? 'status-active' : 'status-inactive'}">
+                                ${bot.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <p style="color: #7f8c8d; margin-bottom: 12px;">${bot.instructions || 'No instructions'}</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" style="font-size: 13px; padding: 8px 16px;" onclick="toggleBot(${bot.id}, ${!bot.is_active})">
+                                ${bot.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button class="btn btn-danger" style="font-size: 13px; padding: 8px 16px;" onclick="deleteBot(${bot.id})">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update bot select in channel modal
+                const botSelect = document.getElementById('channelBotSelect');
+                botSelect.innerHTML = '<option value="">No bot</option>' + 
+                    data.data.filter(b => b.is_active).map(bot => `
+                        <option value="${bot.id}">${bot.bot_name}</option>
+                    `).join('');
+
+            } catch (error) {
+                console.error('Load bots error:', error);
+            }
         }
 
-        // Format date
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+        function openCreateBotModal() {
+            document.getElementById('createBotModal').classList.add('show');
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = checkAuth();
-            if (!user) return;
+        async function createBot(e) {
+            e.preventDefault();
 
-            loadServiceInfo();
-        });
+            const botData = {
+                bot_name: document.getElementById('botName').value,
+                instructions: document.getElementById('botInstructions').value,
+                service_id: currentServiceId
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/bots`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(botData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Bot created successfully!');
+                    closeModal('createBotModal');
+                    await loadBots();
+                    await loadStats();
+                    document.getElementById('botName').value = '';
+                    document.getElementById('botInstructions').value = '';
+                } else {
+                    alert(data.error || 'Failed to create bot');
+                }
+            } catch (error) {
+                console.error('Create bot error:', error);
+                alert('Failed to create bot');
+            }
+        }
+
+        async function toggleBot(botId, activate) {
+            try {
+                const response = await fetch(`${API_BASE}/bots/${botId}/${activate ? 'activate' : 'deactivate'}`, {
+                    method: 'PUT',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    await loadBots();
+                    await loadStats();
+                } else {
+                    alert('Failed to update bot');
+                }
+            } catch (error) {
+                console.error('Toggle bot error:', error);
+            }
+        }
+
+        async function deleteBot(botId) {
+            if (!confirm('Delete this bot?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/bots/${botId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    alert('Bot deleted');
+                    await loadBots();
+                    await loadStats();
+                } else {
+                    alert('Failed to delete bot');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+
+        async function loadChannels() {
+            try {
+                const response = await fetch(`${API_BASE}/channels?service_id=${currentServiceId}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                const channelsList = document.getElementById('channelsList');
+
+                if (!data.data || data.data.length === 0) {
+                    channelsList.innerHTML = '<div class="empty-state">No channels created yet. Click "Create Channel" to get started!</div>';
+                    return;
+                }
+
+                channelsList.innerHTML = data.data.map(channel => `
+                    <div class="bot-card">
+                        <div class="bot-header">
+                            <div class="bot-name">${channel.channel_name}</div>
+                        </div>
+                        <p style="color: #7f8c8d; margin-bottom: 12px;">Bot: ${channel.bot_name || 'No bot assigned'}</p>
+                        <button class="btn btn-danger" style="font-size: 13px; padding: 8px 16px;" onclick="deleteChannel(${channel.id})">
+                            Delete Channel
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Load channels error:', error);
+            }
+        }
+
+        function openCreateChannelModal() {
+            document.getElementById('createChannelModal').classList.add('show');
+        }
+
+        async function createChannel(e) {
+            e.preventDefault();
+
+            const channelData = {
+                channel_name: document.getElementById('channelName').value,
+                service_id: currentServiceId,
+                bot_id: document.getElementById('channelBotSelect').value || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(channelData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Channel created successfully!');
+                    closeModal('createChannelModal');
+                    await loadChannels();
+                    await loadStats();
+                    document.getElementById('channelName').value = '';
+                } else {
+                    alert(data.error || 'Failed to create channel');
+                }
+            } catch (error) {
+                console.error('Create channel error:', error);
+                alert('Failed to create channel');
+            }
+        }
+
+        async function deleteChannel(channelId) {
+            if (!confirm('Delete this channel?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/channels/${channelId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    alert('Channel deleted');
+                    await loadChannels();
+                    await loadStats();
+                } else {
+                    alert('Failed to delete channel');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
     </script>
 </body>
 </html>

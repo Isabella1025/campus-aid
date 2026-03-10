@@ -97,7 +97,7 @@ class BotService {
    * @param {string} context - Optional context from vector stores
    * @returns {string} - System prompt
    */
-  static generateSystemPrompt(bot, context = '') {
+  static generateSystemPrompt(bot, context = '', hasFileContent = false) {
     let prompt = `You are ${bot.bot_name}, a helpful AI assistant for ${bot.service_name} at Ashesi University.
 
 Your role and responsibilities:
@@ -112,6 +112,7 @@ Important guidelines:
 - Keep responses concise but informative (2-4 paragraphs max)
 - Use bullet points for lists when appropriate
 - Be empathetic to student concerns
+${hasFileContent ? '- IMPORTANT: When a user uploads a file, the file content is included in the conversation. You CAN see and analyze the file content. Do NOT say you cannot view files!' : ''}
 
 `;
 
@@ -158,7 +159,8 @@ Use this information to answer questions accurately. If the question cannot be a
       }
       
       // Generate system prompt with context
-      const systemPrompt = this.generateSystemPrompt(bot, context);
+      const hasFileContent = userMessage.includes('[User uploaded a file:');
+      const systemPrompt = this.generateSystemPrompt(bot, context, hasFileContent);
 
       // Build conversation context (last 5 messages for context)
       const contextMessages = conversationHistory

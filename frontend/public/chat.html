@@ -803,11 +803,10 @@
                 if (attachedFile) {
                     const formData = new FormData();
                     formData.append('file', attachedFile);
-                    formData.append('service_id', currentChannel.service_id);
                     formData.append('channel_id', currentChannel.id);
 
-                    // Upload file
-                    const uploadResponse = await fetch(`${API_BASE}/files/upload`, {
+                    // Upload file using chat-specific endpoint
+                    const uploadResponse = await fetch(`${API_BASE}/files/upload-chat`, {
                         method: 'POST',
                         credentials: 'include',
                         body: formData

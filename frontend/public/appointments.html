@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Request Appointment - CampusAid</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .appointments-container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .header {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .appointments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .appointment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            border-left: 5px solid #667eea;
+        }
+
+        .appointment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .appointment-card.pending {
+            border-left-color: #f39c12;
+        }
+
+        .appointment-card.approved {
+            border-left-color: #27ae60;
+        }
+
+        .appointment-card.declined {
+            border-left-color: #e74c3c;
+        }
+
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .appointment-service {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .appointment-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .appointment-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .appointment-status.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .appointment-status.declined {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .appointment-date {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .appointment-time {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .appointment-reason {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .appointment-notes {
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .empty-state h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #7f8c8d;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 35px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #95a5a6;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 2000;
+            max-width: 400px;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .notification.success {
+            border-left: 5px solid #27ae60;
+        }
+
+        .notification.error {
+            border-left: 5px solid #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="appointments-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📅 My Appointments</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="newAppointmentBtn">
+                    ➕ Request Appointment
+                </button>
+                <a href="/services.html" class="btn btn-secondary">← Back</a>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            Loading appointments...
+        </div>
+
+        <!-- Appointments Grid -->
+        <div id="appointmentsGrid" class="appointments-grid" style="display: none;">
+            <!-- Appointments will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <h2>📅 No Appointments Yet</h2>
+            <p>Request your first appointment with a service office!</p>
+            <br>
+            <button class="btn btn-primary" onclick="document.getElementById('newAppointmentBtn').click()">
+                Request Appointment
+            </button>
+        </div>
+    </div>
+
+    <!-- Request Appointment Modal -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📅 Request Appointment</h2>
+                <button class="close-btn" id="closeModalBtn">×</button>
+            </div>
+
+            <form id="appointmentForm">
+                <div class="form-group">
+                    <label for="serviceSelect">Service Office *</label>
+                    <select id="serviceSelect" required>
+                        <option value="">-- Select Service --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="staffSelect">Staff Member *</label>
+                    <select id="staffSelect" required disabled>
+                        <option value="">-- Select a service first --</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="appointmentDate">Date *</label>
+                        <input type="date" id="appointmentDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appointmentTime">Time *</label>
+                        <input type="time" id="appointmentTime" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Duration</label>
+                    <select id="duration">
+                        <option value="30">30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60">1 hour</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reason">Reason for Appointment *</label>
+                    <textarea id="reason" placeholder="Briefly describe what you'd like to discuss..." required></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        Submit Request
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentUser = null;
+        let services = [];
+
+        // Check auth
+        function checkAuth() {
+            const user = sessionStorage.getItem('user');
+            if (!user) {
+                window.location.href = '/';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        // Load services
+        async function loadServices() {
+            try {
+                const response = await fetch(`${API_BASE}/services`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                services = data.data || [];
+
+                const select = document.getElementById('serviceSelect');
+                services.forEach(service => {
+                    const option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = service.service_name;
+                    select.appendChild(option);
+                });
+
+                // Load staff when service is selected
+                select.addEventListener('change', async (e) => {
+                    const serviceId = e.target.value;
+                    const staffSelect = document.getElementById('staffSelect');
+                    
+                    staffSelect.innerHTML = '<option value="">-- Loading staff... --</option>';
+                    staffSelect.disabled = true;
+
+                    if (!serviceId) {
+                        staffSelect.innerHTML = '<option value="">-- Select a service first --</option>';
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`${API_BASE}/appointments/staff/${serviceId}`, {
+                            credentials: 'include'
+                        });
+                        const data = await response.json();
+                        const staff = data.data || [];
+
+                        staffSelect.innerHTML = '<option value="">-- Select Staff Member --</option>';
+                        
+                        staff.forEach(member => {
+                            const option = document.createElement('option');
+                            option.value = member.staff_id;
+                            option.textContent = `${member.full_name}${member.staff_role ? ' - ' + member.staff_role : ''}`;
+                            staffSelect.appendChild(option);
+                        });
+
+                        staffSelect.disabled = false;
+
+                    } catch (error) {
+                        console.error('Error loading staff:', error);
+                        staffSelect.innerHTML = '<option value="">-- Error loading staff --</option>';
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading services:', error);
+            }
+        }
+
+        // Load appointments
+        async function loadAppointments() {
+            try {
+                const response = await fetch(`${API_BASE}/appointments/my`, {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                const appointments = data.data || [];
+
+                document.getElementById('loadingState').style.display = 'none';
+
+                if (appointments.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    return;
+                }
+
+                const grid = document.getElementById('appointmentsGrid');
+                grid.style.display = 'grid';
+                grid.innerHTML = '';
+
+                appointments.forEach(apt => {
+                    const card = createAppointmentCard(apt);
+                    grid.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                showNotification('Failed to load appointments', 'error');
+            }
+        }
+
+        // Create appointment card
+        function createAppointmentCard(apt) {
+            const card = document.createElement('div');
+            card.className = `appointment-card ${apt.status}`;
+
+            const date = new Date(apt.appointment_date);
+            const dateStr = date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+
+            card.innerHTML = `
+                <div class="appointment-header">
+                    <div class="appointment-service">${apt.service_name}</div>
+                    <span class="appointment-status ${apt.status}">${apt.status}</span>
+                </div>
+                ${apt.assigned_staff_name ? `
+                    <div style="color: #667eea; font-weight: 500; font-size: 14px; margin: 8px 0;">
+                        👤 With: ${apt.assigned_staff_name}
+                    </div>
+                ` : ''}
+                <div class="appointment-date">${dateStr}</div>
+                <div class="appointment-time">🕐 ${formatTime(apt.appointment_time)}</div>
+                <div class="appointment-reason">
+                    <strong>Reason:</strong><br>
+                    ${escapeHtml(apt.reason || 'No reason provided')}
+                </div>
+                ${apt.staff_notes ? `
+                    <div class="appointment-notes">
+                        <strong>Staff Notes:</strong><br>
+                        ${escapeHtml(apt.staff_notes)}
+                    </div>
+                ` : ''}
+                ${apt.status === 'pending' ? `
+                    <div class="appointment-actions">
+                        <button class="btn btn-danger btn-small" onclick="cancelAppointment(${apt.id})">
+                            Cancel
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+
+            return card;
+        }
+
+        // Format time
+        function formatTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':');
+            const h = parseInt(hours);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const displayHour = h % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Show modal
+        document.getElementById('newAppointmentBtn').addEventListener('click', () => {
+            document.getElementById('appointmentModal').classList.add('show');
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appointmentDate').min = today;
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('appointmentModal').classList.remove('show');
+            document.getElementById('appointmentForm').reset();
+        }
+
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+        // Submit appointment request
+        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                service_id: parseInt(document.getElementById('serviceSelect').value),
+                assigned_staff_id: parseInt(document.getElementById('staffSelect').value),
+                appointment_date: document.getElementById('appointmentDate').value,
+                appointment_time: document.getElementById('appointmentTime').value + ':00',
+                duration_minutes: parseInt(document.getElementById('duration').value),
+                reason: document.getElementById('reason').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Appointment request submitted successfully!', 'success');
+                    closeModal();
+                    loadAppointments();
+                } else {
+                    showNotification(data.error || 'Failed to request appointment', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error requesting appointment:', error);
+                showNotification('Failed to request appointment', 'error');
+            }
+        });
+
+        // Cancel appointment
+        async function cancelAppointment(appointmentId) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Appointment cancelled', 'success');
+                    loadAppointments();
+                } else {
+                    showNotification(data.error || 'Failed to cancel appointment', 'error');
+                }
+
+            } catch (error) {
+                console.error('Error cancelling appointment:', error);
+                showNotification('Failed to cancel appointment', 'error');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            currentUser = checkAuth();
+            if (!currentUser) return;
+
+            loadServices();
+            loadAppointments();
+        });
+    </script>
+</body>
+</html>

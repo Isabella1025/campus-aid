@@ -368,7 +368,7 @@
 
     // Initialize when socket is available
     if (typeof io !== 'undefined') {
-        const socket = io('window.location.origin');
+        const socket = io(window.location.origin);
         NotificationSystem.init(socket);
     }
 </script>

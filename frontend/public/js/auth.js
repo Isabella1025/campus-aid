@@ -4,7 +4,7 @@ const API_BASE = `${window.location.origin}/api`;
 // Check for existing session on page load
 async function checkExistingSession() {
   try {
-    const response = await fetch(`${API_BASE}/session/verify`, {
+    const response = await fetch(`${API_BASE}/auth/verify`, {
       credentials: 'include'
     });
     
@@ -63,7 +63,7 @@ async function handleLogin(event) {
     if (loginBtnText) loginBtnText.textContent = 'Signing in...';
     if (loginBtnLoader) loginBtnLoader.style.display = 'inline-block';
     
-    const response = await fetch(`${API_BASE}/session/start`, {
+    const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -110,7 +110,7 @@ async function handleLogout() {
   try {
     console.log('Logging out...');
     
-    const response = await fetch(`${API_BASE}/session/logout`, {
+    const response = await fetch(`${API_BASE}/auth/logout`, {
       method: 'POST',
       credentials: 'include'
     });

@@ -18,13 +18,13 @@ app.use(helmet({
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
-      'window.location.origin',
+      'http://localhost:3000',
       /\.railway\.app$/,  // Allow all Railway domains
-      /\.up\.railway\.app$/  // Railway's newer domain format
+      /\.up\.railway\.app$/
     ];
     
     const isAllowed = allowedOrigins.some(pattern => {
@@ -40,7 +40,7 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true  
 }));
 
 // Body parsing middleware
@@ -60,15 +60,14 @@ const sessionStore = new MySQLStore({
 });
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'campusaid-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: sessionStore,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    secure: process.env.NODE_ENV === 'production',  // HTTPS only in production
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
-    maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000,  // 24 hours
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'  // ✅ CRITICAL for cross-origin!
   }
 }));
 

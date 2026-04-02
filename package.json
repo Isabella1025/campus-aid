@@ -26,6 +26,7 @@
     "npm": ">=9.0.0"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "adm-zip": "^0.5.16",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.3",

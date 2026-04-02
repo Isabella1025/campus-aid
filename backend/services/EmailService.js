@@ -1,24 +1,20 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 /**
- * Email Service
+ * Email Service using SendGrid
  * Handles sending emails (OTP, password reset, etc.)
  */
 
 class EmailService {
   constructor() {
-    // Create transporter
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      family: 4,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
+    // Set SendGrid API key
+    if (process.env.SENDGRID_API_KEY) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      console.log('✓ SendGrid initialized');
+    } else {
+      console.warn('⚠️ SENDGRID_API_KEY not set');
+    }
   }
 
   /**
@@ -26,12 +22,12 @@ class EmailService {
    */
   async sendOTP(toEmail, otp, userName = '') {
     try {
-      const mailOptions = {
-        from: {
-          name: 'CampusAid - Ashesi University',
-          address: process.env.EMAIL_USER
-        },
+      const msg = {
         to: toEmail,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'isabella.tsikata@ashesi.edu.gh',
+          name: 'CampusAid - Ashesi University'
+        },
         subject: 'Verify Your CampusAid Account',
         html: `
           <!DOCTYPE html>
@@ -87,16 +83,6 @@ class EmailService {
                 font-size: 12px;
                 color: #7f8c8d;
               }
-              .button {
-                display: inline-block;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 12px 30px;
-                text-decoration: none;
-                border-radius: 5px;
-                font-weight: bold;
-                margin: 20px 0;
-              }
             </style>
           </head>
           <body>
@@ -136,12 +122,15 @@ class EmailService {
         `
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('✓ OTP email sent:', info.messageId);
-      return { success: true, messageId: info.messageId };
+      await sgMail.send(msg);
+      console.log('✓ OTP email sent via SendGrid to:', toEmail);
+      return { success: true };
 
     } catch (error) {
-      console.error('✗ Email sending failed:', error);
+      console.error('✗ SendGrid email failed:', error);
+      if (error.response) {
+        console.error('SendGrid error details:', error.response.body);
+      }
       throw error;
     }
   }
@@ -151,14 +140,14 @@ class EmailService {
    */
   async sendPasswordReset(toEmail, resetToken, userName = '') {
     try {
-      const resetUrl = `${process.env.APP_URL || 'window.location.origin'}/reset-password.html?token=${resetToken}`;
+      const resetUrl = `${process.env.APP_URL || 'https://campus-aid-production.up.railway.app'}/reset-password.html?token=${resetToken}`;
 
-      const mailOptions = {
-        from: {
-          name: 'CampusAid - Ashesi University',
-          address: process.env.EMAIL_USER
-        },
+      const msg = {
         to: toEmail,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'isabella.tsikata@ashesi.edu.gh',
+          name: 'CampusAid - Ashesi University'
+        },
         subject: 'Reset Your CampusAid Password',
         html: `
           <!DOCTYPE html>
@@ -252,12 +241,15 @@ class EmailService {
         `
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('✓ Password reset email sent:', info.messageId);
-      return { success: true, messageId: info.messageId };
+      await sgMail.send(msg);
+      console.log('✓ Password reset email sent via SendGrid to:', toEmail);
+      return { success: true };
 
     } catch (error) {
-      console.error('✗ Email sending failed:', error);
+      console.error('✗ SendGrid email failed:', error);
+      if (error.response) {
+        console.error('SendGrid error details:', error.response.body);
+      }
       throw error;
     }
   }
@@ -269,12 +261,12 @@ class EmailService {
     try {
       const greeting = userName ? `Hi ${userName}` : 'Hello';
       
-      const mailOptions = {
-        from: {
-          name: 'CampusAid - Ashesi University',
-          address: process.env.EMAIL_USER
-        },
+      const msg = {
         to: toEmail,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'isabella.tsikata@ashesi.edu.gh',
+          name: 'CampusAid - Ashesi University'
+        },
         subject: 'Password Reset Successful - CampusAid',
         html: `
           <!DOCTYPE html>
@@ -369,7 +361,7 @@ class EmailService {
                 </div>
                 
                 <div style="text-align: center;">
-                  <a href="${process.env.FRONTEND_URL || 'window.location.origin'}" class="button">
+                  <a href="${process.env.APP_URL || 'https://campus-aid-production.up.railway.app'}" class="button">
                     Go to Login
                   </a>
                 </div>
@@ -380,7 +372,7 @@ class EmailService {
               </div>
               <div class="footer">
                 <p>This is an automated message from CampusAid - Ashesi University.</p>
-                <p>For support, contact: ${process.env.SUPPORT_EMAIL || 'support@campusaid.ashesi.edu.gh'}</p>
+                <p>For support, contact: support@campusaid.ashesi.edu.gh</p>
               </div>
             </div>
           </body>
@@ -388,12 +380,15 @@ class EmailService {
         `
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('✓ Password reset confirmation sent:', info.messageId);
-      return { success: true, messageId: info.messageId };
+      await sgMail.send(msg);
+      console.log('✓ Password reset confirmation sent via SendGrid to:', toEmail);
+      return { success: true };
 
     } catch (error) {
-      console.error('✗ Email sending failed:', error);
+      console.error('✗ SendGrid email failed:', error);
+      if (error.response) {
+        console.error('SendGrid error details:', error.response.body);
+      }
       throw error;
     }
   }
@@ -402,14 +397,12 @@ class EmailService {
    * Test email connection
    */
   async testConnection() {
-    try {
-      await this.transporter.verify();
-      console.log('✓ Email service is ready');
-      return true;
-    } catch (error) {
-      console.error('✗ Email service connection failed:', error);
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error('✗ SENDGRID_API_KEY not configured');
       return false;
     }
+    console.log('✓ SendGrid service is ready');
+    return true;
   }
 }
 

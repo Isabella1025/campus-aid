@@ -965,16 +965,6 @@
         let unreadCount = 0;
 
         function initNotifications() {
-            const saved = localStorage.getItem('notifications');
-            if (saved) {
-                try {
-                    notifications = JSON.parse(saved);
-                    updateNotificationUI();
-                } catch (e) {
-                    console.error('Failed to load notifications:', e);
-                }
-            }
-
             document.addEventListener('click', (e) => {
                 const dropdown = document.getElementById('notificationDropdown');
                 const bell = e.target.closest('.notification-bell');
@@ -1072,11 +1062,7 @@
         }
 
         function saveNotifications() {
-            try {
-                localStorage.setItem('notifications', JSON.stringify(notifications));
-            } catch (error) {
-                console.error('Failed to save notifications:', error);
-            }
+            // Notifications are user-specific — do not cache in localStorage
         }
 
         function formatTime(timestamp) {

@@ -329,11 +329,7 @@
         },
 
         saveNotifications() {
-            try {
-                localStorage.setItem('notifications', JSON.stringify(this.notifications));
-            } catch (error) {
-                console.error('Failed to save notifications:', error);
-            }
+            // Notifications are user-specific — do not cache in localStorage
         },
 
         formatTime(timestamp) {

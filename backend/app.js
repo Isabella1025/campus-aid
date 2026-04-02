@@ -2,10 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
+
+// Trust Railway's reverse proxy so secure cookies work correctly
+app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet({
@@ -44,13 +48,26 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'campusaid_db',
+  port: parseInt(process.env.DB_PORT) || 3306,
+  clearExpired: true,
+  checkExpirationInterval: 900000, // clean up expired sessions every 15 min
+  expiration: parseInt(process.env.SESSION_MAX_AGE) || 86400000 // 24 hours
+});
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'campusaid-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
+  store: sessionStore,
   cookie: {
     secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
     httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
     maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000 // 24 hours
   }
 }));

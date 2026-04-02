@@ -795,7 +795,7 @@
             document.getElementById('searchFilterContainer').innerHTML = html;
             
             // Get services for filter dropdown
-            const servicesResp = await fetch('window.location.origin/api/services', {
+            const servicesResp = await fetch(`${window.location.origin}/api/services`, {
                 credentials: 'include'
             });
             const servicesData = await servicesResp.json();

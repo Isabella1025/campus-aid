@@ -39,6 +39,7 @@ router.get('/service/:serviceId', async (req, res) => {
           sc.service_id,
           sc.is_private,
           sc.channel_type,
+          sc.created_at,
           sc.bot_id,
           sb.bot_name,
           (SELECT COUNT(*) FROM messages m WHERE m.channel_id = sc.id AND m.is_bot_message = FALSE) as my_message_count

@@ -148,8 +148,21 @@ module.exports = (io) => {
               LIMIT 10
             `, [channelId]);
 
-            // Get the user's current message
-            const userMessage = message.trim();
+            // If a file was attached, load its extracted text and append to message
+            let userMessage = message.trim();
+            if (fileId) {
+              try {
+                const [file] = await query('SELECT original_name, extracted_text FROM files WHERE id = ?', [fileId]);
+                if (file && file.extracted_text) {
+                  userMessage += `\n\n[User uploaded a file: ${file.original_name}]\nFile content:\n${file.extracted_text.substring(0, 3000)}\n\nPlease analyze this file and provide specific feedback based on its actual content.`;
+                  console.log(`✓ File content appended to message: ${file.extracted_text.length} characters`);
+                } else {
+                  userMessage += `\n\n[User uploaded a file: ${file ? file.original_name : 'unknown'} — text could not be extracted. Let the user know you cannot read this file type.]`;
+                }
+              } catch (fileError) {
+                console.warn('Could not load file content for bot:', fileError);
+              }
+            }
 
             // Build bot object for BotService
             const bot = {

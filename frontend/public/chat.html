@@ -1012,21 +1012,28 @@
                 const servicesResponse = await fetch(`${API_BASE}/services`, {
                     credentials: 'include'
                 });
-                
+
                 if (!servicesResponse.ok) {
                     throw new Error('Failed to load services');
                 }
-                
+
                 const servicesData = await servicesResponse.json();
-                const services = servicesData.data || [];
-                
+                let services = servicesData.data || [];
+
+                // Staff/service_admin only see channels for their assigned service
+                if (user.role === 'staff' || user.role === 'service_admin') {
+                    if (user.assigned_service_id) {
+                        services = services.filter(s => s.id === user.assigned_service_id);
+                    }
+                }
+
                 // Get channels for each service
                 let allChannels = [];
                 for (let service of services) {
                     const channelsResponse = await fetch(`${API_BASE}/channels/service/${service.id}`, {
                         credentials: 'include'
                     });
-                    
+
                     if (channelsResponse.ok) {
                         const channelsData = await channelsResponse.json();
                         const serviceChannels = (channelsData.data || []).map(ch => ({

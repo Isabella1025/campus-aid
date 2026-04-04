@@ -56,9 +56,7 @@ router.get('/service/:serviceId', async (req, res) => {
       `, [serviceId, userId]);
 
     } else if (userRole === 'staff' || userRole === 'service_admin') {
-      // Staff see: 
-      // 1. Public channels (to monitor)
-      // 2. All private bot chats (to see student conversations if needed)
+      // Staff see public channels only — private bot chats belong to students
       channels = await query(`
         SELECT DISTINCT
           sc.id,
@@ -69,14 +67,13 @@ router.get('/service/:serviceId', async (req, res) => {
           sc.created_at,
           sc.bot_id,
           sb.bot_name,
-          student.full_name as student_name,
           (SELECT COUNT(*) FROM messages m WHERE m.channel_id = sc.id) as message_count
         FROM service_channels sc
         LEFT JOIN service_bots sb ON sc.bot_id = sb.id
-        LEFT JOIN users student ON sc.created_by = student.id
-        WHERE sc.service_id = ? 
+        WHERE sc.service_id = ?
           AND sc.is_active = TRUE
-        ORDER BY sc.is_private ASC, sc.created_at DESC
+          AND sc.is_private = FALSE
+        ORDER BY sc.created_at ASC
       `, [serviceId]);
 
     } else {

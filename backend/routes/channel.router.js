@@ -324,14 +324,19 @@ router.get('/:channelId/messages', async (req, res) => {
       }
     }
 
-    // Fetch messages
+    // Fetch messages with bot name and file metadata
     const messages = await query(`
-      SELECT 
+      SELECT
         m.*,
-        u.full_name as sender_name,
-        u.role as sender_role
+        COALESCE(u.full_name, sb.bot_name) as sender_name,
+        u.role as sender_role,
+        f.original_name as fileName,
+        f.file_size as fileSize,
+        f.file_type as fileType
       FROM messages m
       LEFT JOIN users u ON m.sender_id = u.id
+      LEFT JOIN service_bots sb ON m.bot_id = sb.id
+      LEFT JOIN files f ON m.file_id = f.id
       WHERE m.channel_id = ?
       ORDER BY m.created_at ASC
     `, [channelId]);

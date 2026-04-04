@@ -184,21 +184,22 @@ module.exports = (io) => {
 
             console.log(`✓ RAG-powered response generated: ${botResponseText.substring(0, 100)}...`);
 
-            // Save bot's response to database
+            // Save bot's response to database (store bot_id so name can be recovered later)
             const botResult = await query(
-              `INSERT INTO messages (channel_id, sender_id, message_text, message_type, is_bot_message, created_at) 
-               VALUES (?, NULL, ?, 'text', TRUE, NOW())`,
-              [channelId, botResponseText]
+              `INSERT INTO messages (channel_id, sender_id, bot_id, message_text, message_type, is_bot_message, created_at)
+               VALUES (?, NULL, ?, ?, 'text', TRUE, NOW())`,
+              [channelId, channel.bot_id, botResponseText]
             );
 
             const botMessageId = botResult.insertId;
 
             // Fetch the complete bot message
             const [botMessage] = await query(
-              `SELECT m.*, ? as sender_name
+              `SELECT m.*, sb.bot_name as sender_name
                FROM messages m
+               LEFT JOIN service_bots sb ON m.bot_id = sb.id
                WHERE m.id = ?`,
-              [channel.bot_name, botMessageId]
+              [botMessageId]
             );
 
             // Broadcast bot response

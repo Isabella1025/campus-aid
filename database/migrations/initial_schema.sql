@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS files (
     file_name VARCHAR(255) NOT NULL,
     original_name VARCHAR(255) NOT NULL,
     file_path VARCHAR(500) NOT NULL,
-    file_type VARCHAR(50),
+    file_type VARCHAR(100),
     file_size BIGINT,
     uploaded_by INT NOT NULL,
     service_id INT,

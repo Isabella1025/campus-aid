@@ -1,0 +1,1 @@
+ALTER TABLE files MODIFY COLUMN file_type VARCHAR(100);
